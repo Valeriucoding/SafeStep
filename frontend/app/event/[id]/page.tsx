@@ -1,85 +1,99 @@
 "use client"
 
-import { useState, useEffect, use } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
-import { getIncidentById, verifyIncident } from "@/lib/api"
-import { IncidentDetail } from "@/components/incident-detail"
+import { EventDetail } from "@/components/event-detail"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, Loader2 } from "lucide-react"
 import Link from "next/link"
-import type { Incident } from "@/types"
+import { useEventsStore } from "@/store/events-store"
 
-export default function IncidentPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params)
+interface EventPageProps {
+  params: {
+    id: string
+  }
+}
+
+export default function EventPage({ params }: EventPageProps) {
+  const { id } = params
   const router = useRouter()
-  const [incident, setIncident] = useState<Incident | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const events = useEventsStore((state) => state.events)
+  const isLoading = useEventsStore((state) => state.isLoading)
+  const fetchEvents = useEventsStore((state) => state.fetchEvents)
+  const subscribeToRealtime = useEventsStore((state) => state.subscribeToRealtime)
+  const unsubscribeFromRealtime = useEventsStore((state) => state.unsubscribeFromRealtime)
+  const verifyEvent = useEventsStore((state) => state.verifyEvent)
   const [hasVerified, setHasVerified] = useState(false)
+  const [isVerifying, setIsVerifying] = useState(false)
+
+  const event = useMemo(() => events.find((item) => item.id === id), [events, id])
 
   useEffect(() => {
-    async function loadIncident() {
-      try {
-        const data = await getIncidentById(id)
-        setIncident(data)
-      } catch (error) {
-        console.error("Failed to load incident:", error)
-      } finally {
-        setIsLoading(false)
-      }
+    if (!events.length) {
+      fetchEvents()
     }
-    loadIncident()
-  }, [id])
+  }, [events.length, fetchEvents])
+
+  useEffect(() => {
+    subscribeToRealtime()
+
+    return () => {
+      unsubscribeFromRealtime()
+    }
+  }, [subscribeToRealtime, unsubscribeFromRealtime])
 
   const handleVerify = async () => {
-    if (!incident || hasVerified) return
+    if (!event || hasVerified || isVerifying) {
+      return
+    }
 
+    setIsVerifying(true)
     try {
-      await verifyIncident(incident.id)
-      setIncident({
-        ...incident,
-        verificationCount: incident.verificationCount + 1,
-      })
+      await verifyEvent(event.id)
       setHasVerified(true)
     } catch (error) {
-      console.error("Failed to verify incident:", error)
+      console.error("Failed to verify event:", error)
+    } finally {
+      setIsVerifying(false)
     }
   }
 
-  if (isLoading) {
+  if (isLoading && !event) {
     return (
-      <div className="flex h-screen items-center justify-center">
+      <div className="flex h-screen items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     )
   }
 
-  if (!incident) {
+  if (!event) {
     return (
-      <div className="flex h-screen flex-col items-center justify-center gap-4">
-        <p className="text-muted-foreground">Incident not found</p>
-        <Link href="/">
-          <Button>Back to Map</Button>
-        </Link>
+      <div className="flex h-screen flex-col items-center justify-center gap-4 px-4 text-center">
+        <p className="text-muted-foreground">We couldn’t find that event.</p>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => router.back()}>
+            Go Back
+          </Button>
+          <Link href="/">
+            <Button>Back to Map</Button>
+          </Link>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
+    <div className="min-h-screen bg-background pb-6">
       <header className="sticky top-0 z-10 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="flex items-center gap-4 px-4 py-3">
-          <Link href="/">
-            <Button variant="ghost" size="icon">
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-          </Link>
-          <h1 className="text-xl font-semibold">Incident Details</h1>
+          <Button variant="ghost" size="icon" onClick={() => router.back()}>
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <h1 className="text-xl font-semibold">Event Details</h1>
         </div>
       </header>
 
-      {/* Content */}
-      <IncidentDetail incident={incident} onVerify={handleVerify} hasVerified={hasVerified} />
+      <EventDetail event={event} onVerify={handleVerify} hasVerified={hasVerified || isVerifying} />
     </div>
   )
 }

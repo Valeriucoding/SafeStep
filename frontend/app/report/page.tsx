@@ -7,9 +7,9 @@ import { LocationPicker } from "@/components/location-picker"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
-import { createIncident } from "@/lib/api"
+import { createEvent } from "@/lib/api"
 import { useUserLocation } from "@/hooks/use-user-location"
-import type { Location, NewIncident } from "@/types"
+import type { Location, NewEvent } from "@/types"
 
 export default function ReportPage() {
   const router = useRouter()
@@ -17,21 +17,23 @@ export default function ReportPage() {
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const handleSubmit = async (data: Omit<NewIncident, "location" | "userId">) => {
+  const handleSubmit = async (data: Omit<NewEvent, "location">) => {
     if (!selectedLocation) return
 
     setIsSubmitting(true)
     try {
-      const newIncident: NewIncident = {
+      const newEvent: NewEvent = {
         ...data,
-        location: selectedLocation,
-        userId: "current-user", // This would come from auth in production
+        location: {
+          lat: selectedLocation.lat,
+          lng: selectedLocation.lng,
+        },
       }
 
-      await createIncident(newIncident)
+      await createEvent(newEvent)
       router.push("/")
     } catch (error) {
-      console.error("Failed to create incident:", error)
+      console.error("Failed to create event:", error)
     } finally {
       setIsSubmitting(false)
     }
@@ -47,7 +49,7 @@ export default function ReportPage() {
               <ArrowLeft className="h-5 w-5" />
             </Button>
           </Link>
-          <h1 className="text-xl font-semibold">Report Incident</h1>
+          <h1 className="text-xl font-semibold">Report Event</h1>
         </div>
       </header>
 

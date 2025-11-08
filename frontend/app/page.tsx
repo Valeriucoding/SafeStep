@@ -1,41 +1,43 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { MapView } from "@/components/map-view"
 import { EventMarker } from "@/components/event-marker"
 import { MapControls } from "@/components/map-controls"
 import { FeedView } from "@/components/feed-view"
 import { BottomNav } from "@/components/bottom-nav"
 import { useUserLocation } from "@/hooks/use-user-location"
-import { getAllEvents } from "@/lib/api"
-import type { Category, Event } from "@/types"
+import type { Category } from "@/types"
+import { useEventsStore } from "@/store/events-store"
 import { Loader2 } from "lucide-react"
 
 export default function HomePage() {
-  const [events, setEvents] = useState<Event[]>([])
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
   const [view, setView] = useState<"map" | "feed">("map")
   const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null)
   const { location, error: locationError, requestLocation } = useUserLocation()
+  const events = useEventsStore((state) => state.events)
+  const isLoading = useEventsStore((state) => state.isLoading)
+  const error = useEventsStore((state) => state.error)
+  const fetchEvents = useEventsStore((state) => state.fetchEvents)
+  const subscribeToRealtime = useEventsStore((state) => state.subscribeToRealtime)
+  const unsubscribeFromRealtime = useEventsStore((state) => state.unsubscribeFromRealtime)
 
   useEffect(() => {
-    async function loadEvents() {
-      try {
-        const data = await getAllEvents()
-        setEvents(data)
-      } catch (error) {
-        console.error("Failed to load events:", error)
-      } finally {
-        setIsLoading(false)
-      }
-    }
-    loadEvents()
-  }, [])
+    fetchEvents()
+    subscribeToRealtime()
 
-  const filteredEvents = selectedCategory
-    ? events.filter((event) => event.category === selectedCategory)
-    : events
+    return () => {
+      unsubscribeFromRealtime()
+    }
+  }, [fetchEvents, subscribeToRealtime, unsubscribeFromRealtime])
+
+  const filteredEvents = useMemo(() => {
+    if (!selectedCategory) {
+      return events
+    }
+    return events.filter((event) => event.category === selectedCategory)
+  }, [events, selectedCategory])
 
   useEffect(() => {
     if (!mapInstance || location || filteredEvents.length === 0) {
@@ -51,7 +53,7 @@ export default function HomePage() {
     mapInstance.fitBounds(bounds, { top: 48, right: 48, bottom: 48, left: 48 })
   }, [mapInstance, location, filteredEvents])
 
-  if (isLoading) {
+  if (isLoading && events.length === 0) {
     return (
       <div className="flex h-screen items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-3">
@@ -64,6 +66,11 @@ export default function HomePage() {
 
   return (
     <div className="relative h-screen w-full pb-16">
+      {error && (
+        <div className="absolute top-4 left-1/2 z-50 w-[90%] max-w-sm -translate-x-1/2 rounded-lg border border-destructive bg-destructive/10 px-4 py-2 text-center text-sm text-destructive">
+          {error}
+        </div>
+      )}
       {view === "map" ? (
         <>
           <MapView

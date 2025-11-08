@@ -103,10 +103,7 @@ export function EventMarker({ event, map }: EventMarkerProps) {
             }
 
             infoWindow.setPosition(event.location)
-            infoWindow.open({
-              map,
-              position: event.location,
-            })
+            infoWindow.open(map)
           })
         } else if (AdvancedMarkerElement) {
           const iconWrapper = document.createElement("div")

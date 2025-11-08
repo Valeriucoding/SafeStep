@@ -1,0 +1,155 @@
+"use client"
+
+import { create } from "zustand"
+import type { Event } from "@/types"
+import { supabase } from "@/lib/supabase-client"
+import { mapEventRowToEvent, type EventRow } from "@/lib/event-transformer"
+import type { RealtimeChannel, RealtimePostgresChangesPayload } from "@supabase/supabase-js"
+
+type SubscribeStatus = Parameters<RealtimeChannel["subscribe"]>[0] extends (status: infer T) => unknown ? T : string
+
+interface EventsState {
+  events: Event[]
+  isLoading: boolean
+  error: string | null
+  hasRealtimeSubscription: boolean
+  fetchEvents: () => Promise<void>
+  subscribeToRealtime: () => Promise<void>
+  unsubscribeFromRealtime: () => Promise<void>
+  upsertEvent: (event: Event) => void
+  removeEvent: (id: string) => void
+  verifyEvent: (id: string) => Promise<void>
+}
+
+let eventsChannel: RealtimeChannel | null = null
+
+export const useEventsStore = create<EventsState>((set, get) => ({
+  events: [],
+  isLoading: false,
+  error: null,
+  hasRealtimeSubscription: false,
+  async fetchEvents() {
+    set({ isLoading: true, error: null })
+    const { data, error } = await supabase
+      .from("events")
+      .select("*")
+      .order("created_at", { ascending: false })
+
+    if (error) {
+      console.error("[events-store] Failed to fetch events:", error)
+      set({ error: error.message, isLoading: false })
+      return
+    }
+
+    const rows = (data ?? []) as EventRow[]
+    const events = rows.map((row) => mapEventRowToEvent(row))
+    set({ events, isLoading: false })
+  },
+  async subscribeToRealtime() {
+    if (get().hasRealtimeSubscription) {
+      return
+    }
+
+    const channel = supabase
+      .channel("events-feed")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "events" },
+        (payload: RealtimePostgresChangesPayload<EventRow>) => {
+          const event = mapEventRowToEvent(payload.new as EventRow)
+          get().upsertEvent(event)
+        },
+      )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "events" },
+        (payload: RealtimePostgresChangesPayload<EventRow>) => {
+          const event = mapEventRowToEvent(payload.new as EventRow)
+          get().upsertEvent(event)
+        },
+      )
+      .on(
+        "postgres_changes",
+        { event: "DELETE", schema: "public", table: "events" },
+        (payload: RealtimePostgresChangesPayload<EventRow>) => {
+          const id = (payload.old as Partial<EventRow> | null)?.id
+          if (id) {
+            get().removeEvent(id)
+          }
+        },
+      )
+
+    channel.subscribe((status: SubscribeStatus) => {
+      if (status === "SUBSCRIBED") {
+        set({ hasRealtimeSubscription: true })
+      }
+
+      if (status === "CHANNEL_ERROR") {
+        console.error("[events-store] Realtime channel error")
+        set({ error: "Realtime connection failed" })
+      }
+    })
+    eventsChannel = channel
+  },
+  async unsubscribeFromRealtime() {
+    if (!eventsChannel) {
+      return
+    }
+
+    await eventsChannel.unsubscribe()
+    eventsChannel = null
+    set({ hasRealtimeSubscription: false })
+  },
+  upsertEvent(event) {
+    set((state) => {
+      const index = state.events.findIndex((existing) => existing.id === event.id)
+      if (index === -1) {
+        const events = [event, ...state.events]
+        events.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+        return { events }
+      }
+
+      const events = [...state.events]
+      events[index] = event
+      events.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      return { events }
+    })
+  },
+  removeEvent(id) {
+    set((state) => ({
+      events: state.events.filter((event) => event.id !== id),
+    }))
+  },
+  async verifyEvent(id) {
+    const currentEvent = get().events.find((event) => event.id === id)
+    const nextCount = (currentEvent?.verificationCount ?? 0) + 1
+
+    if (!currentEvent) {
+      return
+    }
+
+    set({ error: null })
+
+    set((state) => ({
+      events: state.events.map((event) =>
+        event.id === id ? { ...event, verificationCount: nextCount } : event,
+      ),
+    }))
+
+    const { error } = await supabase
+      .from("events")
+      .update({ verification_count: nextCount })
+      .eq("id", id)
+
+    if (error) {
+      console.error("[events-store] Failed to verify event:", error)
+      set((state) => ({
+        events: state.events.map((event) =>
+          event.id === id ? { ...event, verificationCount: nextCount - 1 } : event,
+        ),
+        error: "Failed to verify event. Please try again.",
+      }))
+    }
+  },
+}))
+

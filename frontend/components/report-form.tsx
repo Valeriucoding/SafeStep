@@ -12,12 +12,16 @@ import { Card, CardContent } from "@/components/ui/card"
 import { ImageUpload } from "@/components/image-upload"
 import { CategorySelect } from "@/components/category-select"
 import { Loader2 } from "lucide-react"
-import type { NewIncident } from "@/types"
+import type { Category, NewEvent } from "@/types"
+
+const CATEGORY_VALUES = ["danger", "blocked-path", "protest", "event", "crime-alert"] as const satisfies readonly Category[]
 
 const reportSchema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters"),
   description: z.string().min(10, "Description must be at least 10 characters"),
-  category: z.string().min(1, "Please select a category"),
+  category: z.enum(CATEGORY_VALUES, {
+    errorMap: () => ({ message: "Please select a category" }),
+  }),
   address: z.string().min(5, "Address must be at least 5 characters"),
   imageUrl: z.string().optional(),
 })
@@ -25,7 +29,7 @@ const reportSchema = z.object({
 type ReportFormData = z.infer<typeof reportSchema>
 
 interface ReportFormProps {
-  onSubmit: (data: Omit<NewIncident, "location" | "userId">) => Promise<void>
+  onSubmit: (data: Omit<NewEvent, "location">) => Promise<void>
   isSubmitting: boolean
   disabled?: boolean
 }
@@ -46,10 +50,12 @@ export function ReportForm({ onSubmit, isSubmitting, disabled }: ReportFormProps
   const category = watch("category")
 
   const onFormSubmit = async (data: ReportFormData) => {
-    await onSubmit({
-      ...data,
-      imageUrl,
-    })
+    await onSubmit(
+      {
+        ...data,
+        imageUrl,
+      },
+    )
   }
 
   return (
