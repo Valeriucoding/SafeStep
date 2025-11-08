@@ -2,17 +2,17 @@
 
 import { useState, useEffect } from "react"
 import { MapView } from "@/components/map-view"
-import { IncidentMarker } from "@/components/incident-marker"
+import { EventMarker } from "@/components/event-marker"
 import { MapControls } from "@/components/map-controls"
 import { FeedView } from "@/components/feed-view"
 import { BottomNav } from "@/components/bottom-nav"
 import { useUserLocation } from "@/hooks/use-user-location"
-import { getAllIncidents } from "@/lib/api"
-import type { Category, Incident } from "@/types"
+import { getAllEvents } from "@/lib/api"
+import type { Category, Event } from "@/types"
 import { Loader2 } from "lucide-react"
 
 export default function HomePage() {
-  const [incidents, setIncidents] = useState<Incident[]>([])
+  const [events, setEvents] = useState<Event[]>([])
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [view, setView] = useState<"map" | "feed">("map")
@@ -20,25 +20,25 @@ export default function HomePage() {
   const { location, error: locationError, requestLocation } = useUserLocation()
 
   useEffect(() => {
-    async function loadIncidents() {
+    async function loadEvents() {
       try {
-        const data = await getAllIncidents()
-        setIncidents(data)
+        const data = await getAllEvents()
+        setEvents(data)
       } catch (error) {
-        console.error("Failed to load incidents:", error)
+        console.error("Failed to load events:", error)
       } finally {
         setIsLoading(false)
       }
     }
-    loadIncidents()
+    loadEvents()
   }, [])
 
-  const filteredIncidents = selectedCategory
-    ? incidents.filter((incident) => incident.category === selectedCategory)
-    : incidents
+  const filteredEvents = selectedCategory
+    ? events.filter((event) => event.category === selectedCategory)
+    : events
 
   useEffect(() => {
-    if (!mapInstance || location || filteredIncidents.length === 0) {
+    if (!mapInstance || location || filteredEvents.length === 0) {
       return
     }
 
@@ -47,9 +47,9 @@ export default function HomePage() {
     }
 
     const bounds = new google.maps.LatLngBounds()
-    filteredIncidents.forEach((incident) => bounds.extend(incident.location))
+    filteredEvents.forEach((event) => bounds.extend(event.location))
     mapInstance.fitBounds(bounds, { top: 48, right: 48, bottom: 48, left: 48 })
-  }, [mapInstance, location, filteredIncidents])
+  }, [mapInstance, location, filteredEvents])
 
   if (isLoading) {
     return (
@@ -72,8 +72,8 @@ export default function HomePage() {
             onLocationRequest={requestLocation}
             onMapReady={setMapInstance}
           >
-            {filteredIncidents.map((incident) => (
-              <IncidentMarker key={incident.id} incident={incident} />
+            {filteredEvents.map((event) => (
+              <EventMarker key={event.id} event={event} />
             ))}
           </MapView>
 
@@ -85,11 +85,7 @@ export default function HomePage() {
           />
         </>
       ) : (
-        <FeedView
-          incidents={filteredIncidents}
-          selectedCategory={selectedCategory}
-          onCategoryChange={setSelectedCategory}
-        />
+        <FeedView events={filteredEvents} selectedCategory={selectedCategory} onCategoryChange={setSelectedCategory} />
       )}
 
       {locationError && (

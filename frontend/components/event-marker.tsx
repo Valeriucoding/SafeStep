@@ -1,16 +1,16 @@
 "use client"
 
 import { useEffect } from "react"
-import type { Incident } from "@/types"
+import type { Event } from "@/types"
 import { CATEGORY_COLORS, CATEGORY_ICONS, CATEGORY_LABELS } from "@/lib/constants"
 import { importMapsLibrary, importMarkerLibrary } from "@/lib/google-maps"
 
-interface IncidentMarkerProps {
-  incident: Incident
+interface EventMarkerProps {
+  event: Event
   map?: google.maps.Map
 }
 
-export function IncidentMarker({ incident, map }: IncidentMarkerProps) {
+export function EventMarker({ event, map }: EventMarkerProps) {
   useEffect(() => {
     if (!map) {
       return
@@ -29,7 +29,7 @@ export function IncidentMarker({ incident, map }: IncidentMarkerProps) {
         const { InfoWindow } = mapsLibrary
 
         let AdvancedMarkerElement: typeof google.maps.marker.AdvancedMarkerElement | undefined
-        if (!incident.radiusMeters || incident.radiusMeters <= 0) {
+        if (!event.radiusMeters || event.radiusMeters <= 0) {
           const markerLibrary = await importMarkerLibrary()
           AdvancedMarkerElement = markerLibrary.AdvancedMarkerElement
         }
@@ -50,45 +50,45 @@ export function IncidentMarker({ incident, map }: IncidentMarkerProps) {
         titleEl.style.fontSize = "14px"
         titleEl.style.fontWeight = "600"
         titleEl.style.color = "#0f172a"
-        titleEl.textContent = incident.title
+        titleEl.textContent = event.title
 
         const categoryEl = document.createElement("span")
         categoryEl.style.fontSize = "12px"
         categoryEl.style.color = "#475569"
         categoryEl.textContent =
-          CATEGORY_LABELS[incident.category as keyof typeof CATEGORY_LABELS] ?? incident.category
+          CATEGORY_LABELS[event.category as keyof typeof CATEGORY_LABELS] ?? event.category
 
         const addressEl = document.createElement("p")
         addressEl.style.margin = "0"
         addressEl.style.fontSize = "12px"
         addressEl.style.color = "#475569"
-        addressEl.textContent = incident.address
+        addressEl.textContent = event.address
 
         content.appendChild(titleEl)
         content.appendChild(categoryEl)
         content.appendChild(addressEl)
 
-        if (incident.radiusMeters && incident.radiusMeters > 0) {
+        if (event.radiusMeters && event.radiusMeters > 0) {
           const radiusEl = document.createElement("span")
           radiusEl.style.fontSize = "12px"
           radiusEl.style.color = "#64748b"
-          radiusEl.textContent = `Impact radius: ${Math.round(incident.radiusMeters)} m`
+          radiusEl.textContent = `Impact radius: ${Math.round(event.radiusMeters)} m`
           content.appendChild(radiusEl)
         }
 
         infoWindow = new InfoWindow({
           content,
-          ariaLabel: incident.title,
+          ariaLabel: event.title,
         })
 
-        if (incident.radiusMeters && incident.radiusMeters > 0) {
+        if (event.radiusMeters && event.radiusMeters > 0) {
           const color =
-            CATEGORY_COLORS[incident.category as keyof typeof CATEGORY_COLORS] ?? "rgba(15, 23, 42, 1)"
+            CATEGORY_COLORS[event.category as keyof typeof CATEGORY_COLORS] ?? "rgba(15, 23, 42, 1)"
 
           const circleConfig: google.maps.CircleOptions = {
             map,
-            center: incident.location,
-            radius: incident.radiusMeters,
+            center: event.location,
+            radius: event.radiusMeters,
             strokeColor: color,
             strokeOpacity: 0.65,
             strokeWeight: 2,
@@ -102,10 +102,10 @@ export function IncidentMarker({ incident, map }: IncidentMarkerProps) {
               return
             }
 
-            infoWindow.setPosition(incident.location)
+            infoWindow.setPosition(event.location)
             infoWindow.open({
               map,
-              position: incident.location,
+              position: event.location,
             })
           })
         } else if (AdvancedMarkerElement) {
@@ -121,14 +121,13 @@ export function IncidentMarker({ incident, map }: IncidentMarkerProps) {
           iconWrapper.style.fontWeight = "600"
           iconWrapper.style.boxShadow = "0 8px 16px rgba(15, 23, 42, 0.25)"
           iconWrapper.style.backgroundColor =
-            CATEGORY_COLORS[incident.category as keyof typeof CATEGORY_COLORS] ?? "#fde68a"
-          iconWrapper.textContent =
-            CATEGORY_ICONS[incident.category as keyof typeof CATEGORY_ICONS] ?? "📍"
+            CATEGORY_COLORS[event.category as keyof typeof CATEGORY_COLORS] ?? "#fde68a"
+          iconWrapper.textContent = CATEGORY_ICONS[event.category as keyof typeof CATEGORY_ICONS] ?? "📍"
 
           marker = new AdvancedMarkerElement({
             map,
-            position: incident.location,
-            title: incident.title,
+            position: event.location,
+            title: event.title,
             content: iconWrapper,
           })
 
@@ -143,7 +142,7 @@ export function IncidentMarker({ incident, map }: IncidentMarkerProps) {
           })
         }
       } catch (error) {
-        console.error("Failed to render incident marker:", error)
+        console.error("Failed to render event marker:", error)
       }
     }
 
@@ -167,7 +166,7 @@ export function IncidentMarker({ incident, map }: IncidentMarkerProps) {
         markerClickListener.remove()
       }
     }
-  }, [incident, map])
+  }, [event, map])
 
   return null
 }

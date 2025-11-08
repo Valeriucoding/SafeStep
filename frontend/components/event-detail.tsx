@@ -7,25 +7,25 @@ import { CATEGORY_LABELS, CATEGORY_ICONS } from "@/lib/constants"
 import { MapPin, Calendar, CheckCircle2, AlertCircle } from "lucide-react"
 import { formatDistanceToNow } from "date-fns"
 import Image from "next/image"
-import type { Incident } from "@/types"
-import { IncidentMap } from "@/components/incident-map"
+import type { Event } from "@/types"
+import { EventMap } from "@/components/event-map"
 
-interface IncidentDetailProps {
-  incident: Incident
+interface EventDetailProps {
+  event: Event
   onVerify: () => void
   hasVerified: boolean
 }
 
-export function IncidentDetail({ incident, onVerify, hasVerified }: IncidentDetailProps) {
-  const categoryLabel = CATEGORY_LABELS[incident.category as keyof typeof CATEGORY_LABELS]
-  const categoryIcon = CATEGORY_ICONS[incident.category as keyof typeof CATEGORY_ICONS]
+export function EventDetail({ event, onVerify, hasVerified }: EventDetailProps) {
+  const categoryLabel = CATEGORY_LABELS[event.category as keyof typeof CATEGORY_LABELS]
+  const categoryIcon = CATEGORY_ICONS[event.category as keyof typeof CATEGORY_ICONS]
 
   return (
     <div className="mx-auto max-w-2xl p-4 space-y-4">
       {/* Status Badge */}
       <div className="flex items-center justify-between">
-        <Badge variant={incident.isActive ? "default" : "secondary"}>
-          {incident.isActive ? (
+        <Badge variant={event.isActive ? "default" : "secondary"}>
+          {event.isActive ? (
             <>
               <AlertCircle className="h-3 w-3 mr-1" />
               Active
@@ -36,15 +36,15 @@ export function IncidentDetail({ incident, onVerify, hasVerified }: IncidentDeta
         </Badge>
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Calendar className="h-4 w-4" />
-          {formatDistanceToNow(new Date(incident.createdAt), { addSuffix: true })}
+          {formatDistanceToNow(new Date(event.createdAt), { addSuffix: true })}
         </div>
       </div>
 
       {/* Image */}
-      {incident.imageUrl && (
+      {event.imageUrl && (
         <Card className="overflow-hidden">
           <div className="aspect-video relative">
-            <Image src={incident.imageUrl || "/placeholder.svg"} alt={incident.title} fill className="object-cover" />
+            <Image src={event.imageUrl || "/placeholder.svg"} alt={event.title} fill className="object-cover" />
           </div>
         </Card>
       )}
@@ -58,23 +58,23 @@ export function IncidentDetail({ incident, onVerify, hasVerified }: IncidentDeta
                 <span className="text-2xl">{categoryIcon}</span>
                 <Badge variant="outline">{categoryLabel}</Badge>
               </div>
-              <CardTitle className="text-2xl">{incident.title}</CardTitle>
+              <CardTitle className="text-2xl">{event.title}</CardTitle>
             </div>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          <p className="text-foreground leading-relaxed">{incident.description}</p>
+          <p className="text-foreground leading-relaxed">{event.description}</p>
 
           <div className="flex items-start gap-2 text-sm text-muted-foreground">
             <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0" />
-            <span>{incident.address}</span>
+            <span>{event.address}</span>
           </div>
         </CardContent>
       </Card>
 
       {/* Map */}
       <Card className="overflow-hidden">
-        <IncidentMap location={incident.location} />
+        <EventMap location={event.location} />
       </Card>
 
       {/* Verification */}
@@ -84,8 +84,7 @@ export function IncidentDetail({ incident, onVerify, hasVerified }: IncidentDeta
             <div>
               <p className="font-semibold text-lg">Community Verification</p>
               <p className="text-sm text-muted-foreground">
-                {incident.verificationCount} {incident.verificationCount === 1 ? "person has" : "people have"} verified
-                this incident
+                {event.verificationCount} {event.verificationCount === 1 ? "person has" : "people have"} verified this event
               </p>
             </div>
             <Button onClick={onVerify} disabled={hasVerified} size="lg" variant={hasVerified ? "outline" : "default"}>
@@ -103,7 +102,7 @@ export function IncidentDetail({ incident, onVerify, hasVerified }: IncidentDeta
       </Card>
 
       {/* Safety Tips */}
-      {incident.isActive && (
+      {event.isActive && (
         <Card className="border-primary/20 bg-primary/5">
           <CardContent className="pt-6">
             <div className="flex gap-3">

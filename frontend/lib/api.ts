@@ -1,9 +1,9 @@
 "use server"
 
-import type { Incident, NewIncident } from "@/types"
+import type { Event, NewEvent } from "@/types"
 
 // Mock data for development
-const mockIncidents: Incident[] = [
+const mockEvents: Event[] = [
   {
     id: "1",
     title: "Road Closed",
@@ -11,8 +11,7 @@ const mockIncidents: Incident[] = [
     category: "blocked-path",
     location: { lat: 44.4268, lng: 26.1025 },
     address: "Piata Unirii, Bucharest, Romania",
-    createdAt: new Date("2025-01-08"),
-    userId: "user1",
+    createdAt: "2025-01-08T00:00:00Z",
     imageUrl: "/road-construction.png",
     verificationCount: 5,
     isActive: true,
@@ -25,8 +24,7 @@ const mockIncidents: Incident[] = [
     category: "protest",
     location: { lat: 44.4353, lng: 26.1027 },
     address: "Calea Victoriei, Bucharest, Romania",
-    createdAt: new Date("2025-01-08"),
-    userId: "user2",
+    createdAt: "2025-01-08T00:00:00Z",
     verificationCount: 12,
     isActive: true,
     radiusMeters: 250,
@@ -38,8 +36,7 @@ const mockIncidents: Incident[] = [
     category: "crime-alert",
     location: { lat: 44.4406, lng: 26.045 },
     address: "Strada Paris, Bucharest, Romania",
-    createdAt: new Date("2025-01-08"),
-    userId: "user3",
+    createdAt: "2025-01-08T00:00:00Z",
     verificationCount: 3,
     isActive: true,
   },
@@ -50,8 +47,7 @@ const mockIncidents: Incident[] = [
     category: "event",
     location: { lat: 44.4314, lng: 26.0993 },
     address: "Strada Lipscani, Bucharest, Romania",
-    createdAt: new Date("2025-01-09"),
-    userId: "user4",
+    createdAt: "2025-01-09T00:00:00Z",
     imageUrl: "/street-performers-crowd.jpg",
     verificationCount: 8,
     isActive: true,
@@ -64,8 +60,7 @@ const mockIncidents: Incident[] = [
     category: "blocked-path",
     location: { lat: 44.4358, lng: 26.0961 },
     address: "Bulevardul Regina Elisabeta, Bucharest, Romania",
-    createdAt: new Date("2025-01-09"),
-    userId: "user5",
+    createdAt: "2025-01-09T00:00:00Z",
     imageUrl: "/broken-glass-on-sidewalk.jpg",
     verificationCount: 4,
     isActive: true,
@@ -78,8 +73,7 @@ const mockIncidents: Incident[] = [
     category: "danger",
     location: { lat: 44.4302, lng: 26.1062 },
     address: "Piata Universitatii, Bucharest, Romania",
-    createdAt: new Date("2025-01-09"),
-    userId: "user6",
+    createdAt: "2025-01-09T00:00:00Z",
     verificationCount: 6,
     isActive: true,
     radiusMeters: 120,
@@ -91,8 +85,7 @@ const mockIncidents: Incident[] = [
     category: "event",
     location: { lat: 44.4373, lng: 26.0987 },
     address: "Calea Victoriei, Bucharest, Romania",
-    createdAt: new Date("2025-01-09"),
-    userId: "user7",
+    createdAt: "2025-01-09T00:00:00Z",
     imageUrl: "/peaceful-street-protest.jpg",
     verificationCount: 2,
     isActive: true,
@@ -105,8 +98,7 @@ const mockIncidents: Incident[] = [
     category: "event",
     location: { lat: 44.4441, lng: 26.0972 },
     address: "Strada Franceza, Bucharest, Romania",
-    createdAt: new Date("2025-01-09"),
-    userId: "user8",
+    createdAt: "2025-01-09T00:00:00Z",
     imageUrl: "/street-performers-crowd.jpg",
     verificationCount: 5,
     isActive: true,
@@ -119,8 +111,7 @@ const mockIncidents: Incident[] = [
     category: "blocked-path",
     location: { lat: 44.4249, lng: 26.1098 },
     address: "Bulevardul Dimitrie Cantemir, Bucharest, Romania",
-    createdAt: new Date("2025-01-09"),
-    userId: "user9",
+    createdAt: "2025-01-09T00:00:00Z",
     verificationCount: 3,
     isActive: true,
     radiusMeters: 110,
@@ -132,8 +123,7 @@ const mockIncidents: Incident[] = [
     category: "danger",
     location: { lat: 44.4346, lng: 26.0843 },
     address: "Bulevardul Eroilor, Bucharest, Romania",
-    createdAt: new Date("2025-01-09"),
-    userId: "user10",
+    createdAt: "2025-01-09T00:00:00Z",
     verificationCount: 7,
     isActive: true,
     radiusMeters: 160,
@@ -145,44 +135,43 @@ const mockIncidents: Incident[] = [
     category: "crime-alert",
     location: { lat: 44.4287, lng: 26.0896 },
     address: "Strada Izvor, Bucharest, Romania",
-    createdAt: new Date("2025-01-09"),
-    userId: "user11",
+    createdAt: "2025-01-09T00:00:00Z",
     verificationCount: 4,
     isActive: true,
     radiusMeters: 100,
   },
 ]
 
-export async function getAllIncidents(): Promise<Incident[]> {
+export async function getAllEvents(): Promise<Event[]> {
   // Simulate network delay
   await new Promise((resolve) => setTimeout(resolve, 500))
-  return mockIncidents
+  return mockEvents
 }
 
-export async function getIncidentById(id: string): Promise<Incident | null> {
+export async function getEventById(id: string): Promise<Event | null> {
   await new Promise((resolve) => setTimeout(resolve, 300))
-  return mockIncidents.find((incident) => incident.id === id) || null
+  return mockEvents.find((event) => event.id === id) || null
 }
 
-export async function createIncident(incident: NewIncident): Promise<Incident> {
+export async function createEvent(event: NewEvent): Promise<Event> {
   await new Promise((resolve) => setTimeout(resolve, 500))
 
-  const newIncident: Incident = {
-    ...incident,
+  const newEvent: Event = {
+    ...event,
     id: Math.random().toString(36).substr(2, 9),
-    createdAt: new Date(),
+    createdAt: new Date().toISOString(),
     verificationCount: 0,
     isActive: true,
   }
 
-  mockIncidents.push(newIncident)
-  return newIncident
+  mockEvents.push(newEvent)
+  return newEvent
 }
 
-export async function verifyIncident(id: string): Promise<void> {
+export async function verifyEvent(id: string): Promise<void> {
   await new Promise((resolve) => setTimeout(resolve, 300))
-  const incident = mockIncidents.find((i) => i.id === id)
-  if (incident) {
-    incident.verificationCount += 1
+  const event = mockEvents.find((i) => i.id === id)
+  if (event) {
+    event.verificationCount += 1
   }
 }

@@ -1,18 +1,18 @@
 "use client"
 
-import { EventCard } from "@/components/incident-card"
-import type { Category, Incident } from "@/types"
+import { EventCard } from "@/components/event-card"
+import type { Category, Event } from "@/types"
 import { CATEGORY_COLORS, CATEGORY_ICONS, CATEGORY_LABELS, CATEGORIES } from "@/lib/constants"
 import { cn } from "@/lib/utils"
 import type { CSSProperties } from "react"
 
 interface FeedViewProps {
-  incidents: Incident[]
+  events: Event[]
   selectedCategory: Category | null
   onCategoryChange: (category: Category | null) => void
 }
 
-export function FeedView({ incidents, selectedCategory, onCategoryChange }: FeedViewProps) {
+export function FeedView({ events, selectedCategory, onCategoryChange }: FeedViewProps) {
   return (
     <div className="h-full overflow-y-auto bg-background">
       {/* Header */}
@@ -21,7 +21,7 @@ export function FeedView({ incidents, selectedCategory, onCategoryChange }: Feed
           <div className="space-y-1">
             <h1 className="text-xl font-semibold">Event Feed</h1>
             <p className="text-sm text-muted-foreground">
-              {incidents.length} active {incidents.length === 1 ? "event" : "events"}
+              {events.length} active {events.length === 1 ? "event" : "events"}
             </p>
           </div>
           <div className="flex flex-wrap items-start gap-2">
@@ -46,7 +46,7 @@ export function FeedView({ incidents, selectedCategory, onCategoryChange }: Feed
 
       {/* Feed Content */}
       <div className="p-4 space-y-4">
-        {incidents.length === 0 ? (
+        {events.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <p className="text-muted-foreground">No events to display</p>
             <p className="text-sm text-muted-foreground mt-1">
@@ -54,7 +54,7 @@ export function FeedView({ incidents, selectedCategory, onCategoryChange }: Feed
             </p>
           </div>
         ) : (
-          incidents.map((incident) => <EventCard key={incident.id} incident={incident} />)
+          events.map((event) => <EventCard key={event.id} event={event} />)
         )}
       </div>
     </div>

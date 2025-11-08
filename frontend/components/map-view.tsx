@@ -21,10 +21,10 @@ export function MapView({ center, zoom, children, onMapReady }: MapViewProps) {
   useEffect(() => {
     const initMap = async () => {
       try {
-        const { Map } = await importMapsLibrary()
+        const { Map: GoogleMap } = await importMapsLibrary()
 
         if (mapRef.current && !map) {
-          const newMap = new Map(mapRef.current, {
+          const newMap = new GoogleMap(mapRef.current, {
             center,
             zoom,
             disableDefaultUI: true,
@@ -32,13 +32,8 @@ export function MapView({ center, zoom, children, onMapReady }: MapViewProps) {
             mapTypeControl: false,
             streetViewControl: false,
             fullscreenControl: false,
-            mapId: "safestep-map",
-            styles: [
-              {
-                featureType: "poi",
-                stylers: [{ visibility: "off" }],
-              },
-            ],
+            clickableIcons: false,
+            mapId: process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID ?? "safestep-map",
           })
           setMap(newMap)
           setIsLoading(false)

@@ -23,3 +23,4 @@ export const CATEGORY_LABELS = {
   event: "Event",
   "crime-alert": "Crime Alert",
 }
+

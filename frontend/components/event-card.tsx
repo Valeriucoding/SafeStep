@@ -7,26 +7,26 @@ import { MapPin, Calendar, CheckCircle2 } from "lucide-react"
 import { formatDistanceToNow } from "date-fns"
 import Image from "next/image"
 import Link from "next/link"
-import type { Incident } from "@/types"
+import type { Event } from "@/types"
 
 interface EventCardProps {
-  incident: Incident
+  event: Event
 }
 
-export function EventCard({ incident }: EventCardProps) {
-  const categoryLabel = CATEGORY_LABELS[incident.category as keyof typeof CATEGORY_LABELS]
-  const categoryIcon = CATEGORY_ICONS[incident.category as keyof typeof CATEGORY_ICONS]
+export function EventCard({ event }: EventCardProps) {
+  const categoryLabel = CATEGORY_LABELS[event.category as keyof typeof CATEGORY_LABELS]
+  const categoryIcon = CATEGORY_ICONS[event.category as keyof typeof CATEGORY_ICONS]
 
   return (
-    <Link href={`/incident/${incident.id}`}>
+    <Link href={`/event/${event.id}`}>
       <Card className="group relative overflow-hidden border-border/70 bg-card/70 backdrop-blur-sm transition-all hover:border-primary/70 hover:shadow-lg">
         <CardContent className="flex flex-col gap-0 p-0 sm:flex-row">
           {/* Image */}
           <div className="relative flex h-40 w-full flex-shrink-0 overflow-hidden bg-muted sm:h-auto sm:w-40">
-            {incident.imageUrl ? (
+            {event.imageUrl ? (
               <Image
-                src={incident.imageUrl}
-                alt={incident.title}
+                src={event.imageUrl}
+                alt={event.title}
                 fill
                 className="object-cover transition-transform duration-500 group-hover:scale-105"
               />
@@ -48,27 +48,27 @@ export function EventCard({ incident }: EventCardProps) {
                   </Badge>
                 </div>
                 <h3 className="line-clamp-2 text-lg font-semibold tracking-tight text-foreground transition-colors group-hover:text-primary">
-                  {incident.title}
+                  {event.title}
                 </h3>
               </div>
-              {incident.verificationCount > 0 && (
+              {event.verificationCount > 0 && (
                 <span className="flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
                   <CheckCircle2 className="h-3 w-3" />
-                  {incident.verificationCount} verified
+                  {event.verificationCount} verified
                 </span>
               )}
             </div>
 
-            <p className="line-clamp-3 text-sm leading-relaxed text-muted-foreground">{incident.description}</p>
+            <p className="line-clamp-3 text-sm leading-relaxed text-muted-foreground">{event.description}</p>
 
             <div className="mt-auto flex flex-wrap items-center gap-x-6 gap-y-3 border-t border-border/60 pt-4 text-xs text-muted-foreground">
               <div className="flex min-w-0 items-center gap-2">
                 <MapPin className="h-3.5 w-3.5 flex-shrink-0 text-primary/80" />
-                <span className="truncate">{incident.address}</span>
+                <span className="truncate">{event.address}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Calendar className="h-3.5 w-3.5 flex-shrink-0 text-primary/80" />
-                <span>{formatDistanceToNow(new Date(incident.createdAt), { addSuffix: true })}</span>
+                <span>{formatDistanceToNow(new Date(event.createdAt), { addSuffix: true })}</span>
               </div>
             </div>
           </div>

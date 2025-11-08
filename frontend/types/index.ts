@@ -5,27 +5,25 @@ export interface Location {
   lng: number
 }
 
-export interface Incident {
+export interface Event {
   id: string
   title: string
   description: string
   category: Category
   location: Location
   address: string
-  createdAt: Date
-  userId: string
+  createdAt: string
   imageUrl?: string
   verificationCount: number
   isActive: boolean
   radiusMeters?: number
 }
 
-export interface NewIncident {
+export interface NewEvent {
   title: string
   description: string
   category: Category
   location: Location
   address: string
-  userId: string
   imageUrl?: string
 }

@@ -1,37 +1,32 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import { importLibrary } from "@googlemaps/js-api-loader"
 import type { Location } from "@/types"
-import type * as google from "google.maps"
+import { importMapsLibrary, importMarkerLibrary } from "@/lib/google-maps"
 
-interface IncidentMapProps {
+interface EventMapProps {
   location: Location
 }
 
-export function IncidentMap({ location }: IncidentMapProps) {
+export function EventMap({ location }: EventMapProps) {
   const mapRef = useRef<HTMLDivElement>(null)
   const [map, setMap] = useState<google.maps.Map | null>(null)
 
   useEffect(() => {
     const initMap = async () => {
       try {
-        const { Map } = (await importLibrary("maps", {
-          apiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "",
-        })) as google.maps.MapsLibrary
-
-        const { Marker } = (await importLibrary("marker", {
-          apiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "",
-        })) as google.maps.MarkerLibrary
+        const { Map: GoogleMap } = await importMapsLibrary()
+        const { Marker } = await importMarkerLibrary()
 
         if (mapRef.current && !map) {
-          const newMap = new Map(mapRef.current, {
+          const newMap = new GoogleMap(mapRef.current, {
             center: location,
             zoom: 16,
             disableDefaultUI: true,
             zoomControl: true,
             gestureHandling: "cooperative",
-            mapId: "safestep-incident-map",
+            clickableIcons: false,
+            mapId: process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID ?? "safestep-event-map",
           })
 
           new Marker({
@@ -47,7 +42,14 @@ export function IncidentMap({ location }: IncidentMapProps) {
     }
 
     initMap()
-  }, [])
+  }, [location, map])
+
+  useEffect(() => {
+    if (map) {
+      map.panTo(location)
+    }
+  }, [map, location])
+
 
   return <div ref={mapRef} className="h-64 w-full" />
 }
