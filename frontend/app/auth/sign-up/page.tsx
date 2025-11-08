@@ -4,9 +4,10 @@ import { useAuthForm } from "@/hooks/auth/use-auth-form";
 import { usePasswordVisibility } from "@/hooks/auth/use-password-visibility";
 import { validateConfirmPassword, validateEmail, validatePassword } from "@/lib/validation/auth";
 import { useRouter } from "next/navigation";
-import { useEffect, useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { EmailConfirmationSuccess } from "@/components/auth/email-confirmation-success";
 import { PasswordVisibilityToggle } from "@/components/auth/password-visibility-toggle";
+import { SafeStepLogo } from "@/components/icons/safe-step-logo";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -20,16 +21,14 @@ export default function SignUp() {
     const [signUpComplete, setSignUpComplete] = useState(false);
     const password = usePasswordVisibility();
     const confirmPassword = usePasswordVisibility();
+    const passwordValueRef = useRef("");
     const emailId = useId();
     const passwordId = useId();
     const confirmPasswordId = useId();
 
-    const validateConfirmPasswordWithContext = (value: string) =>
-        validateConfirmPassword(fieldState.password?.value || "", value);
-
     const { fieldState, isLoading, formError, handleSubmit, focusFirstField } = useAuthForm({
         confirmPassword: {
-            validationFn: validateConfirmPasswordWithContext,
+            validationFn: value => validateConfirmPassword(passwordValueRef.current, value),
         },
         email: {
             validationFn: validateEmail,
@@ -70,12 +69,13 @@ export default function SignUp() {
 
     return (
         <div className="flex h-[calc(100dvh-3.5rem)] overflow-y-auto bg-background p-4">
-            <div className="flex w-full items-center justify-center">
+            <div className="flex w-full flex-col items-center justify-center gap-6">
+                <SafeStepLogo className="h-12 w-auto" />
                 <Card className="w-full max-w-md border-border/50 shadow-sm sm:border-border sm:shadow-black/5">
-                    <CardHeader>
-                        <CardTitle className="text-center text-xl sm:text-left">Create your account</CardTitle>
-                        <CardDescription className="text-center sm:text-left">
-                            Welcome! Please fill in the details to get started.
+                    <CardHeader className="space-y-2 text-center sm:text-left">
+                        <CardTitle className="text-xl font-semibold sm:text-2xl">Join SafeStep</CardTitle>
+                        <CardDescription className="text-sm sm:text-base">
+                            Create your account to help report and track local issues.
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -105,7 +105,11 @@ export default function SignUp() {
                                         className="pr-12"
                                         id={passwordId}
                                         onBlur={fieldState.password?.handleBlur}
-                                        onChange={e => fieldState.password?.setValue(e.target.value)}
+                                    onChange={e => {
+                                        const value = e.target.value;
+                                        passwordValueRef.current = value;
+                                        fieldState.password?.setValue(value);
+                                    }}
                                         ref={fieldState.password?.ref}
                                         type={password.isVisible ? "text" : "password"}
                                         value={fieldState.password?.value || ""}

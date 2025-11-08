@@ -7,6 +7,7 @@ import { CheckCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
 import { PasswordVisibilityToggle } from "@/components/auth/password-visibility-toggle";
+import { SafeStepLogo } from "@/components/icons/safe-step-logo";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -106,23 +107,19 @@ export default function ResetPassword() {
     if (passwordReset) {
         return (
             <div className="flex h-[calc(100dvh-3.5rem)] overflow-y-auto bg-background p-4">
-                <div className="flex w-full items-center justify-center">
-                    <Card className="w-full max-w-md border-border/50 shadow-sm sm:border-border sm:shadow-black/5">
-                        <CardContent className="flex flex-col items-center gap-6 pt-6">
-                            <div className="flex items-center justify-center">
-                                <CheckCircle className="h-16 w-16 text-primary" />
-                            </div>
-                            <div className="space-y-2 text-center">
-                                <div>
-                                    <span className="block text-center font-semibold text-lg">Password Updated</span>
-                                    <span className="block text-center text-muted-foreground">
-                                        Your password has been successfully updated. You can now sign in with your new
-                                        password.
-                                    </span>
-                                </div>
-                            </div>
+            <div className="flex w-full flex-col items-center justify-center gap-6">
+                <SafeStepLogo className="h-12 w-auto" />
+                <Card className="w-full max-w-md border-border/50 shadow-sm sm:border-border sm:shadow-black/5">
+                    <CardHeader className="space-y-2 text-center">
+                        <CardTitle className="text-xl font-semibold sm:text-2xl">Password updated</CardTitle>
+                        <CardDescription className="text-sm sm:text-base">
+                            Your credentials are refreshed. Sign in with your new password to continue.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="flex flex-col items-center gap-6">
+                            <CheckCircle className="h-16 w-16 text-primary" />
                             <Button className="h-14 w-full" onClick={handleReturnToSignIn}>
-                                Sign In
+                                Back to sign in
                             </Button>
                         </CardContent>
                     </Card>
@@ -133,12 +130,13 @@ export default function ResetPassword() {
 
     return (
         <div className="flex h-[calc(100dvh-3.5rem)] overflow-y-auto bg-background p-4">
-            <div className="flex w-full items-center justify-center">
+            <div className="flex w-full flex-col items-center justify-center gap-6">
+                <SafeStepLogo className="h-12 w-auto" />
                 <Card className="w-full max-w-md border-border/50 shadow-sm sm:border-border sm:shadow-black/5">
-                    <CardHeader>
-                        <CardTitle className="text-center text-xl sm:text-left">Reset password</CardTitle>
-                        <CardDescription className="text-center sm:text-left">
-                            Enter the code sent to your email and set a new password
+                    <CardHeader className="space-y-2 text-center sm:text-left">
+                        <CardTitle className="text-xl font-semibold sm:text-2xl">Reset your password</CardTitle>
+                        <CardDescription className="text-sm sm:text-base">
+                            Choose a strong password to keep your SafeStep account secure.
                         </CardDescription>
                     </CardHeader>
                     <CardContent>

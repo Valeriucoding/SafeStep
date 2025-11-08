@@ -7,6 +7,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useId, useState } from "react";
 import { toast } from "sonner";
 import { PasswordVisibilityToggle } from "@/components/auth/password-visibility-toggle";
+import { SafeStepLogo } from "@/components/icons/safe-step-logo";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -77,12 +78,13 @@ function SignInContent() {
 
     return (
         <div className="flex h-[calc(100dvh-3.5rem)] overflow-y-auto bg-background p-4">
-            <div className="flex w-full items-center justify-center">
+            <div className="flex w-full flex-col items-center justify-center gap-6">
+                <SafeStepLogo className="h-12 w-auto" />
                 <Card className="w-full max-w-md border-border/50 shadow-sm sm:border-border sm:shadow-black/5">
-                    <CardHeader>
-                        <CardTitle className="text-center text-xl sm:text-left">Sign in to your app</CardTitle>
-                        <CardDescription className="text-center sm:text-left">
-                            Welcome back! Please sign in to continue
+                    <CardHeader className="space-y-2 text-center sm:text-left">
+                        <CardTitle className="text-xl font-semibold sm:text-2xl">Sign in to SafeStep</CardTitle>
+                        <CardDescription className="text-sm sm:text-base">
+                            Welcome back! Continue supporting safer streets.
                         </CardDescription>
                     </CardHeader>
                     <CardContent>

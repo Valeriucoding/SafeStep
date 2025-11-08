@@ -14,7 +14,7 @@ interface FeedViewProps {
 
 export function FeedView({ events, selectedCategory, onCategoryChange }: FeedViewProps) {
   return (
-    <div className="h-full overflow-y-auto bg-background">
+    <div className="h-full overflow-y-auto bg-background pb-24 sm:pb-28">
       {/* Header */}
       <header className="sticky top-0 z-10 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="px-4 py-3 space-y-3">

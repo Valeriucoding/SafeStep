@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { use, useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 import { EventDetail } from "@/components/event-detail"
 import { Button } from "@/components/ui/button"
@@ -9,13 +9,13 @@ import Link from "next/link"
 import { useEventsStore } from "@/store/events-store"
 
 interface EventPageProps {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
 export default function EventPage({ params }: EventPageProps) {
-  const { id } = params
+  const { id } = use(params)
   const router = useRouter()
   const events = useEventsStore((state) => state.events)
   const isLoading = useEventsStore((state) => state.isLoading)
@@ -60,7 +60,7 @@ export default function EventPage({ params }: EventPageProps) {
 
   if (isLoading && !event) {
     return (
-      <div className="flex h-screen items-center justify-center bg-background">
+      <div className="flex min-h-[calc(100dvh-3.5rem)] items-center justify-center bg-background sm:min-h-[calc(100dvh-4rem)]">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     )
@@ -68,7 +68,7 @@ export default function EventPage({ params }: EventPageProps) {
 
   if (!event) {
     return (
-      <div className="flex h-screen flex-col items-center justify-center gap-4 px-4 text-center">
+      <div className="flex min-h-[calc(100dvh-3.5rem)] flex-col items-center justify-center gap-4 px-4 text-center sm:min-h-[calc(100dvh-4rem)]">
         <p className="text-muted-foreground">We couldn’t find that event.</p>
         <div className="flex gap-2">
           <Button variant="outline" onClick={() => router.back()}>
@@ -83,15 +83,22 @@ export default function EventPage({ params }: EventPageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-6">
-      <header className="sticky top-0 z-10 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="flex items-center gap-4 px-4 py-3">
-          <Button variant="ghost" size="icon" onClick={() => router.back()}>
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <h1 className="text-xl font-semibold">Event Details</h1>
+    <div className="mx-auto flex min-h-[calc(100dvh-3.5rem)] w-full max-w-3xl flex-col gap-4 px-4 pb-10 pt-2 sm:min-h-[calc(100dvh-4rem)] sm:px-6">
+      <div className="flex items-center gap-3">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-11 w-11 rounded-full border border-border bg-background shadow-sm"
+          onClick={() => router.back()}
+          aria-label="Back to previous page"
+        >
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
+        <div className="flex flex-col">
+          <h1 className="text-xl font-semibold text-foreground">Event Details</h1>
+          <span className="text-sm text-muted-foreground">Verify details or follow updates</span>
         </div>
-      </header>
+      </div>
 
       <EventDetail event={event} onVerify={handleVerify} hasVerified={hasVerified || isVerifying} />
     </div>

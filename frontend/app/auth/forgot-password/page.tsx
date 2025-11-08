@@ -5,6 +5,7 @@ import { validateEmail } from "@/lib/validation/auth";
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useState } from "react";
 import { EmailConfirmationSuccess } from "@/components/auth/email-confirmation-success";
+import { SafeStepLogo } from "@/components/icons/safe-step-logo";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -51,12 +52,13 @@ export default function ForgotPassword() {
 
     return (
         <div className="flex h-[calc(100dvh-3.5rem)] overflow-y-auto bg-background p-4">
-            <div className="flex w-full items-center justify-center">
+            <div className="flex w-full flex-col items-center justify-center gap-6">
+                <SafeStepLogo className="h-12 w-auto" />
                 <Card className="w-full max-w-md border-border/50 shadow-sm sm:border-border sm:shadow-black/5">
-                    <CardHeader>
-                        <CardTitle className="text-center text-xl sm:text-left">Forgot password?</CardTitle>
-                        <CardDescription className="text-center sm:text-left">
-                            Enter your email to reset your password
+                    <CardHeader className="space-y-2 text-center sm:text-left">
+                        <CardTitle className="text-xl font-semibold sm:text-2xl">Forgot your password?</CardTitle>
+                        <CardDescription className="text-sm sm:text-base">
+                            Enter your SafeStep email and we’ll send reset instructions.
                         </CardDescription>
                     </CardHeader>
                     <CardContent>

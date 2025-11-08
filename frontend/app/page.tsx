@@ -65,14 +65,14 @@ export default function HomePage() {
   }
 
   return (
-    <div className="relative h-screen w-full pb-16">
+    <div className="relative flex h-[calc(100dvh-3.5rem)] w-full flex-col sm:h-[calc(100dvh-4rem)]">
       {error && (
         <div className="absolute top-4 left-1/2 z-50 w-[90%] max-w-sm -translate-x-1/2 rounded-lg border border-destructive bg-destructive/10 px-4 py-2 text-center text-sm text-destructive">
           {error}
         </div>
       )}
       {view === "map" ? (
-        <>
+        <div className="relative flex flex-1">
           <MapView
             center={location || { lat: 44.4268, lng: 26.1025 }}
             zoom={14}
@@ -83,16 +83,17 @@ export default function HomePage() {
               <EventMarker key={event.id} event={event} />
             ))}
           </MapView>
-
           <MapControls
             selectedCategory={selectedCategory}
             onCategoryChange={setSelectedCategory}
             onLocationRequest={requestLocation}
             hasLocation={!!location}
           />
-        </>
+        </div>
       ) : (
-        <FeedView events={filteredEvents} selectedCategory={selectedCategory} onCategoryChange={setSelectedCategory} />
+        <div className="flex-1 overflow-hidden">
+          <FeedView events={filteredEvents} selectedCategory={selectedCategory} onCategoryChange={setSelectedCategory} />
+        </div>
       )}
 
       {locationError && (
