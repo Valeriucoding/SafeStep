@@ -1,8 +1,9 @@
 "use client"
 
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { Navigation, Filter } from "lucide-react"
+import { Navigation, Filter, MessageCircle } from "lucide-react"
 import { CATEGORIES, CATEGORY_LABELS } from "@/lib/constants"
 import {
   DropdownMenu,
@@ -23,7 +24,7 @@ export function MapControls({ selectedCategory, onCategoryChange, onLocationRequ
   return (
     <>
       {/* Top right controls */}
-      <div className="absolute top-4 right-4 flex flex-col gap-2">
+      <div className="absolute top-4 right-4 flex flex-col items-end gap-2">
         <Button
           size="icon"
           variant={hasLocation ? "default" : "secondary"}
@@ -52,6 +53,15 @@ export function MapControls({ selectedCategory, onCategoryChange, onLocationRequ
             ))}
           </DropdownMenuContent>
         </DropdownMenu>
+
+        <Link href="/ai-chat" className="inline-flex">
+          <Button
+            className="h-12 w-12 rounded-full bg-blue-500 text-white shadow-lg hover:bg-blue-600"
+            aria-label="Open AI chat"
+          >
+            <MessageCircle className="h-5 w-5" />
+          </Button>
+        </Link>
       </div>
 
       {/* Category legend */}

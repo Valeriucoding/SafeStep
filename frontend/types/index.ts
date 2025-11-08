@@ -27,3 +27,17 @@ export interface NewEvent {
   address: string
   imageUrl?: string
 }
+
+export type SafetyAdvisorRequestType =
+  | "SPECIFIC_ADDRESS_QUERY"
+  | "BROAD_AREA_SAFETY_GUIDANCE"
+  | "EVENT_PLANNING"
+  | "ROUTE_SAFETY_CHECK"
+
+export interface SafetyAdvisorRequestPayload {
+  requestType: SafetyAdvisorRequestType
+  userQuery: string
+  areaName?: string
+  timeframeMonths?: number | null
+  coordinates?: Location | null
+}

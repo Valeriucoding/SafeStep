@@ -28,11 +28,8 @@ export function EventMarker({ event, map }: EventMarkerProps) {
         const mapsLibrary = await importMapsLibrary()
         const { InfoWindow } = mapsLibrary
 
-        let AdvancedMarkerElement: typeof google.maps.marker.AdvancedMarkerElement | undefined
-        if (!event.radiusMeters || event.radiusMeters <= 0) {
-          const markerLibrary = await importMarkerLibrary()
-          AdvancedMarkerElement = markerLibrary.AdvancedMarkerElement
-        }
+        const markerLibrary = await importMarkerLibrary()
+        const AdvancedMarkerElement = markerLibrary.AdvancedMarkerElement
 
         if (!isMounted) {
           return
@@ -81,6 +78,23 @@ export function EventMarker({ event, map }: EventMarkerProps) {
           ariaLabel: event.title,
         })
 
+        const openInfoWindow = () => {
+          if (!infoWindow) {
+            return
+          }
+
+          if (marker) {
+            infoWindow.open({
+              anchor: marker,
+              map,
+            })
+            return
+          }
+
+          infoWindow.setPosition(event.location)
+          infoWindow.open(map)
+        }
+
         if (event.radiusMeters && event.radiusMeters > 0) {
           const color =
             CATEGORY_COLORS[event.category as keyof typeof CATEGORY_COLORS] ?? "rgba(15, 23, 42, 1)"
@@ -98,17 +112,14 @@ export function EventMarker({ event, map }: EventMarkerProps) {
 
           circle = new google.maps.Circle(circleConfig)
           circleClickListener = circle.addListener("click", () => {
-            if (!infoWindow) {
-              return
-            }
-
-            infoWindow.setPosition(event.location)
-            infoWindow.open(map)
+            openInfoWindow()
           })
-        } else if (AdvancedMarkerElement) {
+        }
+
+        if (AdvancedMarkerElement) {
           const iconWrapper = document.createElement("div")
-          iconWrapper.style.width = "40px"
-          iconWrapper.style.height = "40px"
+          iconWrapper.style.width = "44px"
+          iconWrapper.style.height = "44px"
           iconWrapper.style.borderRadius = "50%"
           iconWrapper.style.display = "flex"
           iconWrapper.style.alignItems = "center"
@@ -128,15 +139,7 @@ export function EventMarker({ event, map }: EventMarkerProps) {
             content: iconWrapper,
           })
 
-          markerClickListener = marker.addListener("click", () => {
-            if (!infoWindow || !marker) {
-              return
-            }
-            infoWindow.open({
-              anchor: marker,
-              map,
-            })
-          })
+          markerClickListener = marker.addListener("click", openInfoWindow)
         }
       } catch (error) {
         console.error("Failed to render event marker:", error)
