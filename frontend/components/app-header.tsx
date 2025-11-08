@@ -5,6 +5,7 @@ import { Menu, LogOut, Settings, ChevronRight } from "lucide-react";
 import { useState } from "react";
 
 import { SafeStepLogo } from "@/components/icons/safe-step-logo";
+import { EventSearch } from "@/components/event-search";
 import { Button } from "@/components/ui/button";
 import {
   Drawer,
@@ -30,6 +31,7 @@ export function AppHeader() {
   const { toast } = useToast();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
+  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
 
   const isAuthRoute = pathname === AUTH_ROOT_PATH || pathname?.startsWith(`${AUTH_ROOT_PATH}/`);
 
@@ -76,22 +78,34 @@ export function AppHeader() {
   return (
     <Drawer direction="right" open={isMenuOpen} onOpenChange={setIsMenuOpen}>
       <header className="fixed inset-x-0 top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="mx-auto flex h-14 max-w-4xl items-center justify-between px-4 py-2 sm:h-16 sm:px-6">
-          <Link href="/" className="flex items-center gap-2" aria-label="SafeStep home">
-            <SafeStepLogo />
+        <div className="mx-auto flex h-14 max-w-4xl items-center gap-3 px-4 py-2 sm:h-16 sm:gap-4 sm:px-6">
+          <Link href="/" className="flex shrink-0 items-center gap-2" aria-label="SafeStep home">
+            <SafeStepLogo className="h-5" />
             <span className="sr-only">SafeStep</span>
           </Link>
 
-          <DrawerTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-11 w-11 rounded-full border border-border bg-background shadow-sm"
-              aria-label="Open menu"
-            >
-              <Menu className="h-5 w-5" />
-            </Button>
-          </DrawerTrigger>
+          <div className="flex flex-1 items-center gap-3">
+            <EventSearch
+              onSelect={(event) => {
+                router.push(`/event/${event.id}`);
+              }}
+              onExpandedChange={setIsSearchExpanded}
+            />
+
+            <DrawerTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                className={cn(
+                  "flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border/60 bg-background/80 text-foreground shadow-sm transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0",
+                  isSearchExpanded && "hidden",
+                )}
+                aria-label="Open account menu"
+              >
+                <Menu className="h-5 w-5" aria-hidden />
+              </Button>
+            </DrawerTrigger>
+          </div>
         </div>
       </header>
 
