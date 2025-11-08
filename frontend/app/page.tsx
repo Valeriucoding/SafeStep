@@ -16,6 +16,7 @@ export default function HomePage() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [view, setView] = useState<"map" | "feed">("map")
+  const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null)
   const { location, error: locationError, requestLocation } = useUserLocation()
 
   useEffect(() => {
@@ -36,6 +37,20 @@ export default function HomePage() {
     ? incidents.filter((incident) => incident.category === selectedCategory)
     : incidents
 
+  useEffect(() => {
+    if (!mapInstance || location || filteredIncidents.length === 0) {
+      return
+    }
+
+    if (typeof google === "undefined") {
+      return
+    }
+
+    const bounds = new google.maps.LatLngBounds()
+    filteredIncidents.forEach((incident) => bounds.extend(incident.location))
+    mapInstance.fitBounds(bounds, { top: 48, right: 48, bottom: 48, left: 48 })
+  }, [mapInstance, location, filteredIncidents])
+
   if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center bg-background">
@@ -51,7 +66,12 @@ export default function HomePage() {
     <div className="relative h-screen w-full pb-16">
       {view === "map" ? (
         <>
-          <MapView center={location || { lat: 44.4268, lng: 26.1025 }} zoom={14} onLocationRequest={requestLocation}>
+          <MapView
+            center={location || { lat: 44.4268, lng: 26.1025 }}
+            zoom={14}
+            onLocationRequest={requestLocation}
+            onMapReady={setMapInstance}
+          >
             {filteredIncidents.map((incident) => (
               <IncidentMarker key={incident.id} incident={incident} />
             ))}

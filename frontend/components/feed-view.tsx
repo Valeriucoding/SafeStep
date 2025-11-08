@@ -1,6 +1,6 @@
 "use client"
 
-import { IncidentCard } from "@/components/incident-card"
+import { EventCard } from "@/components/incident-card"
 import { Button } from "@/components/ui/button"
 import { Filter } from "lucide-react"
 import type { Incident } from "@/types"
@@ -20,9 +20,9 @@ export function FeedView({ incidents, selectedCategory, onCategoryChange }: Feed
       <header className="sticky top-0 z-10 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="flex items-center justify-between px-4 py-3">
           <div>
-            <h1 className="text-xl font-semibold">Incident Feed</h1>
+            <h1 className="text-xl font-semibold">Event Feed</h1>
             <p className="text-sm text-muted-foreground">
-              {incidents.length} active {incidents.length === 1 ? "incident" : "incidents"}
+              {incidents.length} active {incidents.length === 1 ? "event" : "events"}
             </p>
           </div>
           <DropdownMenu>
@@ -48,13 +48,13 @@ export function FeedView({ incidents, selectedCategory, onCategoryChange }: Feed
       <div className="p-4 space-y-4">
         {incidents.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">
-            <p className="text-muted-foreground">No incidents to display</p>
+            <p className="text-muted-foreground">No events to display</p>
             <p className="text-sm text-muted-foreground mt-1">
-              {selectedCategory ? "Try changing the filter" : "Be the first to report an incident"}
+              {selectedCategory ? "Try changing the filter" : "Be the first to report an event"}
             </p>
           </div>
         ) : (
-          incidents.map((incident) => <IncidentCard key={incident.id} incident={incident} />)
+          incidents.map((incident) => <EventCard key={incident.id} incident={incident} />)
         )}
       </div>
     </div>

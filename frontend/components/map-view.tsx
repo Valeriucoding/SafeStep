@@ -1,18 +1,19 @@
 "use client"
 
-import type React from "react"
-import { useEffect, useRef, useState } from "react"
+import { Children, cloneElement, isValidElement, useEffect, useRef, useState } from "react"
+import type { ReactElement, ReactNode } from "react"
 import type { Location } from "@/types"
 import { importMapsLibrary } from "@/lib/google-maps"
 
 interface MapViewProps {
   center: Location
   zoom: number
-  children?: React.ReactNode
+  children?: ReactNode
   onLocationRequest?: () => void
+  onMapReady?: (map: google.maps.Map) => void
 }
 
-export function MapView({ center, zoom, children }: MapViewProps) {
+export function MapView({ center, zoom, children, onMapReady }: MapViewProps) {
   const mapRef = useRef<HTMLDivElement>(null)
   const [map, setMap] = useState<google.maps.Map | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -41,6 +42,7 @@ export function MapView({ center, zoom, children }: MapViewProps) {
           })
           setMap(newMap)
           setIsLoading(false)
+          onMapReady?.(newMap)
         }
       } catch (error) {
         console.error("Error loading Google Maps:", error)
@@ -49,13 +51,24 @@ export function MapView({ center, zoom, children }: MapViewProps) {
     }
 
     initMap()
-  }, [])
+  }, [center, map, onMapReady, zoom])
 
   useEffect(() => {
     if (map) {
       map.panTo(center)
     }
   }, [map, center])
+
+  const renderedChildren =
+    map && children
+      ? Children.map(children, (child) => {
+          if (!isValidElement(child)) {
+            return child
+          }
+
+          return cloneElement(child as ReactElement<{ map?: google.maps.Map }>, { map })
+        })
+      : null
 
   return (
     <>
@@ -65,6 +78,7 @@ export function MapView({ center, zoom, children }: MapViewProps) {
           <div className="text-sm text-muted-foreground">Loading map...</div>
         </div>
       )}
+      {renderedChildren}
     </>
   )
 }
