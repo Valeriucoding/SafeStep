@@ -8,12 +8,12 @@ import { FeedView } from "@/components/feed-view"
 import { BottomNav } from "@/components/bottom-nav"
 import { useUserLocation } from "@/hooks/use-user-location"
 import { getAllIncidents } from "@/lib/api"
-import type { Incident } from "@/types"
+import type { Category, Incident } from "@/types"
 import { Loader2 } from "lucide-react"
 
 export default function HomePage() {
   const [incidents, setIncidents] = useState<Incident[]>([])
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
+  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [view, setView] = useState<"map" | "feed">("map")
   const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null)

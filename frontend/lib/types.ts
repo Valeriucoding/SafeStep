@@ -1,4 +1,4 @@
-export type Category = "danger" | "blocked_path" | "protest" | "event" | "crime_alert"
+export type Category = "danger" | "blocked-path" | "protest" | "event" | "crime-alert"
 export type Urgency = "low" | "medium" | "high"
 
 export interface Location {
@@ -24,6 +24,7 @@ export interface Incident {
   category: Category
   urgency: Urgency
   location: Location
+  radiusMeters?: number
   description: string
   description_translated?: string
   image_url: string

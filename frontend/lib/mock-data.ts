@@ -15,6 +15,7 @@ export const MOCK_INCIDENTS: Incident[] = [
     image_url: "/broken-glass-on-sidewalk.jpg",
     reported_at: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
     reported_by: { user_id: "anon_1", trust_score: 4.2 },
+    radiusMeters: 60,
     verification: {
       confirmed_count: 3,
       last_confirmed: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
@@ -24,7 +25,7 @@ export const MOCK_INCIDENTS: Incident[] = [
   },
   {
     id: "inc_2",
-    category: "blocked_path",
+    category: "blocked-path",
     urgency: "medium",
     location: {
       lat: 44.4401,
@@ -36,6 +37,7 @@ export const MOCK_INCIDENTS: Incident[] = [
     image_url: "/construction-blocking-sidewalk.jpg",
     reported_at: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
     reported_by: { user_id: "user_234", trust_score: 3.8 },
+    radiusMeters: 180,
     verification: {
       confirmed_count: 5,
       last_confirmed: new Date(Date.now() - 1000 * 60 * 20).toISOString(),
@@ -57,6 +59,7 @@ export const MOCK_INCIDENTS: Incident[] = [
     image_url: "/peaceful-street-protest.jpg",
     reported_at: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
     reported_by: { user_id: "anon_2", trust_score: 4.5 },
+    radiusMeters: 320,
     verification: {
       confirmed_count: 12,
       last_confirmed: new Date(Date.now() - 1000 * 60 * 10).toISOString(),
@@ -78,6 +81,7 @@ export const MOCK_INCIDENTS: Incident[] = [
     image_url: "/street-performers-crowd.jpg",
     reported_at: new Date(Date.now() - 1000 * 60 * 60).toISOString(),
     reported_by: { user_id: "user_567", trust_score: 4.1 },
+    radiusMeters: 140,
     verification: {
       confirmed_count: 7,
       last_confirmed: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
@@ -87,7 +91,7 @@ export const MOCK_INCIDENTS: Incident[] = [
   },
   {
     id: "inc_5",
-    category: "crime_alert",
+    category: "crime-alert",
     urgency: "high",
     location: {
       lat: 44.4214,

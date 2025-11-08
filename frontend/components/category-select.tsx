@@ -1,12 +1,13 @@
 "use client"
 
 import { CATEGORIES, CATEGORY_LABELS, CATEGORY_ICONS } from "@/lib/constants"
+import type { Category } from "@/types"
 import { Card } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 
 interface CategorySelectProps {
-  value?: string
-  onChange: (value: string) => void
+  value?: Category
+  onChange: (value: Category) => void
 }
 
 export function CategorySelect({ value, onChange }: CategorySelectProps) {

@@ -3,12 +3,18 @@
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Navigation, Filter } from "lucide-react"
-import { CATEGORIES } from "@/lib/constants"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { CATEGORIES, CATEGORY_LABELS } from "@/lib/constants"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import type { Category } from "@/types"
 
 interface MapControlsProps {
-  selectedCategory: string | null
-  onCategoryChange: (category: string | null) => void
+  selectedCategory: Category | null
+  onCategoryChange: (category: Category | null) => void
   onLocationRequest: () => void
   hasLocation: boolean
 }
@@ -27,7 +33,7 @@ export function MapControls({ selectedCategory, onCategoryChange, onLocationRequ
           <Navigation className="h-5 w-5" />
         </Button>
 
-        <DropdownMenu>
+            <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
               size="icon"
@@ -41,7 +47,7 @@ export function MapControls({ selectedCategory, onCategoryChange, onLocationRequ
             <DropdownMenuItem onClick={() => onCategoryChange(null)}>All Categories</DropdownMenuItem>
             {CATEGORIES.map((category) => (
               <DropdownMenuItem key={category} onClick={() => onCategoryChange(category)}>
-                {category}
+                {CATEGORY_LABELS[category]}
               </DropdownMenuItem>
             ))}
           </DropdownMenuContent>
@@ -51,7 +57,7 @@ export function MapControls({ selectedCategory, onCategoryChange, onLocationRequ
       {/* Category legend */}
       {selectedCategory && (
         <Card className="absolute bottom-24 left-4 p-3 shadow-lg">
-          <div className="text-sm font-medium">Filtering: {selectedCategory}</div>
+          <div className="text-sm font-medium">Filtering: {CATEGORY_LABELS[selectedCategory]}</div>
         </Card>
       )}
     </>

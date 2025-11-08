@@ -1,0 +1,14 @@
+# .cursorrules
+rules:
+  - name: "Mobile-First Development"
+    description: |
+      - All UI components and layouts must be designed and built for mobile devices first
+      - Use mobile breakpoint (max-width: 640px or 375px–428px viewport) as the default
+      - Desktop and tablet layouts should be progressive enhancements using min-width media queries
+      - Touch targets must be minimum 44x44px for accessibility
+      - Test all interactions assuming touch input (no hover states as primary interaction)
+      - Optimize images and assets for mobile bandwidth and performance
+      - Use responsive units (rem, em, %, vw/vh) instead of fixed pixels where appropriate
+      - Consider mobile-specific patterns: bottom navigation, hamburger menus, swipe gestures
+      - Ensure text is readable without zooming (minimum 16px base font size)
+      - Stack elements vertically by default, using flexbox/grid for mobile layouts
