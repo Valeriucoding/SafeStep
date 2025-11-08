@@ -36,7 +36,7 @@ export function SafetyChat() {
       id: createMessageId(),
       role: "assistant",
       content:
-        "Hello! I'm your SafeStep Urban Safety Advisor. Share a query about an address, area, event, or route and I'll summarize recent safety activity using verified historical data.",
+        "Hello! I'm your SafeStep Urban Advisor. Share a query about an address, area, event, or route and I'll summarize recent safety activity using verified historical data.",
       createdAt: new Date().toISOString(),
     },
   ])
@@ -189,7 +189,7 @@ export function SafetyChat() {
         </Button>
         <div className="flex flex-col">
           <span className="text-base font-semibold">SafeStep AI Advisor</span>
-          <span className="text-xs text-muted-foreground">Mobile-first safety insights powered by historical data</span>
+          <span className="text-xs text-muted-foreground">AI-powered safety insights powered by historical data</span>
         </div>
       </header>
 
@@ -199,34 +199,9 @@ export function SafetyChat() {
             <Info className="mt-0.5 h-5 w-5 text-primary" />
             <div className="space-y-2 text-sm text-muted-foreground">
               <p>
-                SafeStep automatically uses your current coordinates and recent local events to craft a focused safety
-                summary. Ask anything about nearby streets, addresses, or plans.
+                SafeStep automatically uses your current coordinates and recent local events to provide safety summaries and information on what’s happening nearby. Ask about streets, addresses, safety concerns, or upcoming events and local activities.
               </p>
             </div>
-          </div>
-
-          <div className="grid gap-3">
-            <div className="flex items-center gap-2 rounded-xl border bg-muted/20 px-3 py-3 text-sm">
-              <MapPin className="h-4 w-4 text-primary" />
-              <div className="flex flex-col">
-                <span className="font-medium">
-                  {locationSummary ? locationSummary : isLocating ? "Detecting location…" : "Location unavailable"}
-                </span>
-                <span className="text-xs text-muted-foreground">
-                  {locationError
-                    ? locationError
-                    : locationSummary
-                      ? "Using your current coordinates for analysis."
-                      : "We’ll keep trying to detect your position automatically."}
-                </span>
-              </div>
-            </div>
-            <p className="text-xs text-muted-foreground">{timeframeCopy}</p>
-            {locationError && (
-              <Button size="sm" className="h-10 w-fit" onClick={requestLocation} disabled={isLocating}>
-                {isLocating ? "Retrying..." : "Retry location"}
-              </Button>
-            )}
           </div>
         </Card>
 
@@ -266,7 +241,7 @@ export function SafetyChat() {
                 value={inputValue}
                 onChange={(event) => setInputValue(event.target.value)}
                 onKeyDown={handleInputKeyDown}
-                placeholder="Ask about safety for an address, area, event, or route..."
+                placeholder="Ask about an address, area, event, or route..."
                 rows={3}
                 className="resize-none rounded-2xl border bg-background px-4 py-3 text-sm"
               />
