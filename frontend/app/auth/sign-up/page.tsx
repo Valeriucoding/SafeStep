@@ -1,8 +1,8 @@
 "use client";
 
-import { useAuthForm } from "@repo/logic/hooks/auth/use-auth-form";
-import { usePasswordVisibility } from "@repo/logic/hooks/auth/use-password-visibility";
-import { validateConfirmPassword, validateEmail, validatePassword } from "@repo/logic/validation/auth";
+import { useAuthForm } from "@/hooks/auth/use-auth-form";
+import { usePasswordVisibility } from "@/hooks/auth/use-password-visibility";
+import { validateConfirmPassword, validateEmail, validatePassword } from "@/lib/validation/auth";
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useState } from "react";
 import { EmailConfirmationSuccess } from "@/components/auth/email-confirmation-success";
@@ -61,7 +61,9 @@ export default function SignUp() {
     if (signUpComplete) {
         return (
             <EmailConfirmationSuccess
+                continueLabel="Back to sign in"
                 message={`Confirmation link sent to ${fieldState.email?.value}. Please check your inbox to verify your account.`}
+                onContinue={() => router.push("/auth/sign-in")}
             />
         );
     }

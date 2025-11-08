@@ -1,8 +1,8 @@
 "use client";
 
-import { useAuthForm } from "@repo/logic/hooks/auth/use-auth-form";
-import { usePasswordVisibility } from "@repo/logic/hooks/auth/use-password-visibility";
-import { validatePassword } from "@repo/logic/validation/auth";
+import { useAuthForm } from "@/hooks/auth/use-auth-form";
+import { usePasswordVisibility } from "@/hooks/auth/use-password-visibility";
+import { validatePassword } from "@/lib/validation/auth";
 import { CheckCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";

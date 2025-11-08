@@ -1,8 +1,8 @@
 "use client";
 
-import { useAuthForm } from "@repo/logic/hooks/auth/use-auth-form";
-import { usePasswordVisibility } from "@repo/logic/hooks/auth/use-password-visibility";
-import { validateEmail, validatePassword } from "@repo/logic/validation/auth";
+import { useAuthForm } from "@/hooks/auth/use-auth-form";
+import { usePasswordVisibility } from "@/hooks/auth/use-password-visibility";
+import { validateEmail, validatePassword } from "@/lib/validation/auth";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useId, useState } from "react";
 import { toast } from "sonner";
@@ -41,11 +41,21 @@ function SignInContent() {
 
     // Show error toast if redirected here with error param
     useEffect(() => {
-        const errorParam = searchParams.get("error");
+        const params = new URLSearchParams(searchParams.toString());
+        const errorParam = params.get("error");
+        const authSuccessParam = params.get("auth");
+
         if (errorParam) {
             toast.error("Error signing in", { description: errorParam });
-            const params = new URLSearchParams(searchParams.toString());
             params.delete("error");
+        }
+
+        if (authSuccessParam === "success") {
+            toast.success("You are signed in");
+            params.delete("auth");
+        }
+
+        if (errorParam || authSuccessParam) {
             router.replace(`/auth/sign-in${params.size ? `?${params.toString()}` : ""}`);
         }
     }, [router, searchParams]);
@@ -54,7 +64,10 @@ function SignInContent() {
         try {
             await handleSubmit(async () => {
                 await signIn(fieldState.email?.value || "", fieldState.password?.value || "");
-                router.push("/");
+                const redirectParam = searchParams.get("redirect");
+                const destination = redirectParam ? decodeURIComponent(redirectParam) : "/";
+                const safeDestination = destination.startsWith("/") ? destination : "/";
+                router.push(safeDestination);
                 toast.success("Signed in successfully");
             });
         } catch (_error) {

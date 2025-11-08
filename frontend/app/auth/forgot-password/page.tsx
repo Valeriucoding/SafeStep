@@ -1,7 +1,7 @@
 "use client";
 
-import { useAuthForm } from "@repo/logic/hooks/auth/use-auth-form";
-import { validateEmail } from "@repo/logic/validation/auth";
+import { useAuthForm } from "@/hooks/auth/use-auth-form";
+import { validateEmail } from "@/lib/validation/auth";
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useState } from "react";
 import { EmailConfirmationSuccess } from "@/components/auth/email-confirmation-success";
@@ -40,7 +40,13 @@ export default function ForgotPassword() {
     };
 
     if (resetEmailSent) {
-        return <EmailConfirmationSuccess message={`Password reset instructions sent to ${fieldState.email?.value}`} />;
+        return (
+            <EmailConfirmationSuccess
+                continueLabel="Back to sign in"
+                message={`Password reset instructions sent to ${fieldState.email?.value}`}
+                onContinue={() => router.push("/auth/sign-in")}
+            />
+        );
     }
 
     return (
