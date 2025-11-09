@@ -112,7 +112,9 @@ function CategoryPill({ label, active, icon, accent, onClick }: CategoryPillProp
       className={cn(
         "inline-flex min-h-[44px] select-none items-center justify-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
         active
-          ? "border-transparent bg-[color:var(--pill-accent)] text-white shadow-sm"
+          ? accent
+            ? "border-transparent bg-[color:var(--pill-accent)] text-white shadow-sm"
+            : "border-transparent bg-foreground text-background shadow-sm"
           : "border-border bg-background text-foreground hover:border-foreground/40",
       )}
       style={style}
