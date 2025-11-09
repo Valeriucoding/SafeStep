@@ -109,7 +109,7 @@ export function AppHeader() {
         </div>
       </header>
 
-      <DrawerContent className="h-full w-full max-w-sm border-l pt-4 sm:max-w-xs">
+      <DrawerContent className="max-w-sm border-l pt-4">
         <DrawerHeader className="items-start gap-3 pb-2">
           <DrawerTitle className="text-left text-base font-medium text-muted-foreground">Account</DrawerTitle>
           <div className="flex w-full items-center gap-3 rounded-xl border bg-muted/40 p-3">
@@ -123,7 +123,7 @@ export function AppHeader() {
           </div>
         </DrawerHeader>
 
-        <div className="flex flex-1 flex-col gap-2 px-4 py-2">
+        <div className="flex flex-1 min-h-0 flex-col gap-2 overflow-y-auto px-4 py-2">
           <DrawerClose asChild>
             <Button
               asChild
