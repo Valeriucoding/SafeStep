@@ -245,10 +245,7 @@ export function SafetyChat() {
                 rows={3}
                 className="resize-none rounded-2xl border bg-background px-4 py-3 text-sm"
               />
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-muted-foreground">
-                  Enter to send · Shift + Enter for newline
-                </span>
+              <div className="flex items-center justify-end">
                 <Button
                   type="submit"
                   className="h-11 gap-2 rounded-full bg-blue-500 px-6 text-white hover:bg-blue-600"

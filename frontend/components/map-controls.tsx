@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { Navigation, Filter, MessageCircle } from "lucide-react"
+import { Navigation, Filter, BotMessageSquare } from "lucide-react"
 import { CATEGORIES, CATEGORY_LABELS } from "@/lib/constants"
 import {
   DropdownMenu,
@@ -59,7 +59,7 @@ export function MapControls({ selectedCategory, onCategoryChange, onLocationRequ
             className="h-12 w-12 rounded-full bg-blue-500 text-white shadow-lg hover:bg-blue-600"
             aria-label="Open AI chat"
           >
-            <MessageCircle className="h-5 w-5" />
+            <BotMessageSquare className="h-5 w-5" />
           </Button>
         </Link>
       </div>
