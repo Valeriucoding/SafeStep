@@ -236,28 +236,6 @@ export function EventSearch({ onSelect, onExpandedChange }: EventSearchProps) {
           tabIndex={isExpanded ? 0 : -1}
           className="flex-1 border-0 bg-transparent text-base leading-tight text-foreground shadow-none placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0"
         />
-        <div className="flex items-center gap-2">
-          {isLoading ? (
-            <Spinner className="size-5 text-muted-foreground" />
-          ) : query ? (
-            <button
-              type="button"
-              onClick={handleClear}
-              className="inline-flex items-center justify-center rounded-full px-3 py-2 text-xs font-medium text-muted-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0 hover:text-foreground"
-              aria-label="Clear search"
-            >
-              Clear
-            </button>
-          ) : null}
-          <button
-            type="button"
-            onClick={handleCollapse}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0 hover:text-foreground"
-            aria-label="Close event search"
-          >
-            <X className="size-5" aria-hidden />
-          </button>
-        </div>
       </div>
 
       {showDropdown && (
@@ -268,16 +246,6 @@ export function EventSearch({ onSelect, onExpandedChange }: EventSearchProps) {
           )}
         >
           {dropdownContent}
-          <div className="flex items-center justify-end gap-2 border-t px-3 py-2 text-[0.75rem] text-muted-foreground">
-            <span className="flex items-center gap-1">
-              <kbd className="rounded bg-muted px-1 py-0.5 text-xs">↵</kbd>
-              Open
-            </span>
-            <span className="flex items-center gap-1">
-              <kbd className="rounded bg-muted px-1 py-0.5 text-xs">⎋</kbd>
-              Close
-            </span>
-          </div>
         </div>
       )}
     </div>
