@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent } from "@/components/ui/card"
 import { ImageUpload } from "@/components/image-upload"
 import { CategorySelect } from "@/components/category-select"
 import { Loader2 } from "lucide-react"
@@ -59,65 +58,77 @@ export function ReportForm({ onSubmit, isSubmitting, disabled }: ReportFormProps
   }
 
   return (
-    <Card>
-      <CardContent className="pt-6">
-        <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-6">
-          {/* Category Selection */}
-          <div className="space-y-2">
-            <Label htmlFor="category">Category *</Label>
-            <CategorySelect value={category} onChange={(value) => setValue("category", value)} />
-            {errors.category && <p className="text-sm text-destructive">{errors.category.message}</p>}
-          </div>
+    <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-8">
+      {/* Category Selection */}
+      <div className="space-y-3">
+        <Label htmlFor="category" className="text-base font-medium">Category *</Label>
+        <CategorySelect value={category} onChange={(value) => setValue("category", value)} />
+        {errors.category && <p className="text-sm text-destructive mt-1">{errors.category.message}</p>}
+      </div>
 
-          {/* Title */}
-          <div className="space-y-2">
-            <Label htmlFor="title">Title *</Label>
-            <Input id="title" placeholder="Brief description of the incident" {...register("title")} />
-            {errors.title && <p className="text-sm text-destructive">{errors.title.message}</p>}
-          </div>
+      <div className="border-t border-border" />
 
-          {/* Description */}
-          <div className="space-y-2">
-            <Label htmlFor="description">Description *</Label>
-            <Textarea
-              id="description"
-              placeholder="Provide more details about what happened..."
-              rows={4}
-              {...register("description")}
-            />
-            {errors.description && <p className="text-sm text-destructive">{errors.description.message}</p>}
-          </div>
+      {/* Title */}
+      <div className="space-y-3">
+        <Label htmlFor="title" className="text-base font-medium">Title *</Label>
+        <Input 
+          id="title" 
+          placeholder="Brief description of the incident" 
+          className="h-12 text-base"
+          {...register("title")} 
+        />
+        {errors.title && <p className="text-sm text-destructive mt-1">{errors.title.message}</p>}
+      </div>
 
-          {/* Address */}
-          <div className="space-y-2">
-            <Label htmlFor="address">Address *</Label>
-            <Input id="address" placeholder="Street address or landmark" {...register("address")} />
-            {errors.address && <p className="text-sm text-destructive">{errors.address.message}</p>}
-          </div>
+      {/* Description */}
+      <div className="space-y-3">
+        <Label htmlFor="description" className="text-base font-medium">Description *</Label>
+        <Textarea
+          id="description"
+          placeholder="Provide more details about what happened..."
+          rows={5}
+          className="text-base resize-none"
+          {...register("description")}
+        />
+        {errors.description && <p className="text-sm text-destructive mt-1">{errors.description.message}</p>}
+      </div>
 
-          {/* Image Upload */}
-          <div className="space-y-2">
-            <Label>Photo (Optional)</Label>
-            <ImageUpload value={imageUrl} onChange={setImageUrl} />
-          </div>
+      {/* Address */}
+      <div className="space-y-3">
+        <Label htmlFor="address" className="text-base font-medium">Address *</Label>
+        <Input 
+          id="address" 
+          placeholder="Street address or landmark" 
+          className="h-12 text-base"
+          {...register("address")} 
+        />
+        {errors.address && <p className="text-sm text-destructive mt-1">{errors.address.message}</p>}
+      </div>
 
-          {/* Submit Button */}
-          <Button type="submit" className="w-full" size="lg" disabled={disabled || isSubmitting}>
-            {isSubmitting ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Submitting...
-              </>
-            ) : (
-              "Submit Report"
-            )}
-          </Button>
+      <div className="border-t border-border" />
 
-          {disabled && (
-            <p className="text-sm text-center text-muted-foreground">Please select a location on the map above</p>
+      {/* Image Upload */}
+      <div className="space-y-3">
+        <Label className="text-base font-medium">Photo (Optional)</Label>
+        <ImageUpload value={imageUrl} onChange={setImageUrl} />
+      </div>
+
+      {/* Submit Button */}
+      <div className="pt-4">
+        <Button type="submit" className="w-full h-12 text-base font-medium" size="lg" disabled={disabled || isSubmitting}>
+          {isSubmitting ? (
+            <>
+              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+              Submitting...
+            </>
+          ) : (
+            "Submit Report"
           )}
-        </form>
-      </CardContent>
-    </Card>
+        </Button>
+        {disabled && (
+          <p className="text-sm text-center text-muted-foreground mt-3">Please select a location on the map above</p>
+        )}
+      </div>
+    </form>
   )
 }

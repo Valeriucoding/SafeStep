@@ -1,11 +1,11 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Navigation, MapPin } from "lucide-react"
 import type { Location } from "@/types"
 import { importMapsLibrary, importMarkerLibrary } from "@/lib/google-maps"
+import { UserLocationMarker } from "@/components/user-location-marker"
 
 interface LocationPickerProps {
   userLocation: Location | null
@@ -92,35 +92,38 @@ export function LocationPicker({
   }, [map, userLocation])
 
   return (
-    <Card className="overflow-hidden">
-      <div className="relative">
-        <div ref={mapRef} className="h-64 w-full bg-muted" />
+    <div className="space-y-3">
+      <div className="relative w-full overflow-hidden rounded-lg border border-border bg-muted">
+        <div ref={mapRef} className="h-64 w-full sm:h-80" />
+
+        {map && userLocation && (
+          <UserLocationMarker map={map} location={userLocation} />
+        )}
 
         <Button
           type="button"
           size="icon"
           variant="secondary"
-          className="absolute top-2 right-2 shadow-lg"
+          className="absolute top-3 right-3 h-11 w-11 shadow-lg bg-background/95 backdrop-blur-sm hover:bg-background"
           onClick={onRequestLocation}
+          aria-label="Use current location"
         >
-          <Navigation className="h-4 w-4" />
+          <Navigation className="h-5 w-5" />
         </Button>
 
         {selectedLocation && (
-          <div className="absolute bottom-2 left-2 right-2">
-            <Card className="p-2 bg-background/95 backdrop-blur">
-              <div className="flex items-center gap-2 text-sm">
-                <MapPin className="h-4 w-4 text-primary" />
-                <span className="font-medium">Location selected</span>
-              </div>
-            </Card>
+          <div className="absolute bottom-3 left-3 right-3 sm:left-auto sm:right-3 sm:w-auto">
+            <div className="inline-flex items-center gap-2 rounded-lg bg-background/95 backdrop-blur-sm px-4 py-2.5 shadow-lg border border-border/50">
+              <MapPin className="h-4 w-4 text-primary flex-shrink-0" />
+              <span className="text-sm font-medium text-foreground">Location selected</span>
+            </div>
           </div>
         )}
       </div>
 
-      <div className="p-4 border-t bg-muted/30">
-        <p className="text-sm text-muted-foreground text-center">Click on the map to select the incident location</p>
-      </div>
-    </Card>
+      <p className="text-sm text-muted-foreground text-center px-2">
+        Click on the map to select the incident location
+      </p>
+    </div>
   )
 }

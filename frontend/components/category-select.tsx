@@ -2,7 +2,6 @@
 
 import { CATEGORIES, CATEGORY_LABELS, CATEGORY_ICONS } from "@/lib/constants"
 import type { Category } from "@/types"
-import { Card } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 
 interface CategorySelectProps {
@@ -12,21 +11,25 @@ interface CategorySelectProps {
 
 export function CategorySelect({ value, onChange }: CategorySelectProps) {
   return (
-    <div className="grid grid-cols-2 gap-3">
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
       {CATEGORIES.map((category) => (
-        <Card
+        <button
           key={category}
+          type="button"
           className={cn(
-            "cursor-pointer transition-all hover:border-primary",
-            value === category && "border-primary bg-primary/5",
+            "min-h-[56px] w-full rounded-lg border-2 transition-all duration-200",
+            "flex items-center gap-3 px-4 py-3 text-left",
+            "hover:border-primary/50 hover:bg-muted/50",
+            "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2",
+            value === category
+              ? "border-primary bg-primary/10 shadow-sm"
+              : "border-border bg-background",
           )}
           onClick={() => onChange(category)}
         >
-          <div className="p-4 flex items-center gap-3">
-            <span className="text-2xl">{CATEGORY_ICONS[category]}</span>
-            <span className="text-sm font-medium">{CATEGORY_LABELS[category]}</span>
-          </div>
-        </Card>
+          <span className="text-2xl flex-shrink-0">{CATEGORY_ICONS[category]}</span>
+          <span className="text-sm font-medium text-foreground">{CATEGORY_LABELS[category]}</span>
+        </button>
       ))}
     </div>
   )

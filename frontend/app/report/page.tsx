@@ -40,7 +40,7 @@ export default function ReportPage() {
   }
 
   return (
-    <div className="mx-auto flex min-h-[calc(100dvh-3.5rem)] w-full max-w-2xl flex-col gap-6 px-4 pb-10 pt-2 sm:min-h-[calc(100dvh-4rem)] sm:px-6">
+    <div className="flex min-h-[calc(100dvh-3.5rem)] w-full flex-col gap-6 px-4 pb-10 pt-4 sm:min-h-[calc(100dvh-4rem)] sm:px-6 sm:pt-6">
       <div className="flex items-center gap-3">
         <Button
           variant="ghost"
@@ -53,12 +53,12 @@ export default function ReportPage() {
           </Link>
         </Button>
         <div className="flex flex-col">
-          <h1 className="text-xl font-semibold text-foreground">Report Event</h1>
+          <h1 className="text-xl font-semibold text-foreground sm:text-2xl">Report Event</h1>
           <span className="text-sm text-muted-foreground">Share a new safety update with the community</span>
         </div>
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-8">
         <LocationPicker
           userLocation={userLocation}
           selectedLocation={selectedLocation}
