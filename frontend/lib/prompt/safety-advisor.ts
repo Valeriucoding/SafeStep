@@ -2,6 +2,7 @@ import type { Event, Location, SafetyAdvisorRequestPayload } from "@/types"
 
 export interface SafetyAdvisorPromptContext extends SafetyAdvisorRequestPayload {
   events: Event[]
+  filterSummary?: string | null
 }
 
 const SYSTEM_PROMPT_TEMPLATE = `--- SYSTEM INSTRUCTIONS ---
@@ -55,6 +56,8 @@ Search Area: {area_name}
 Coordinates: Lat {lat}, Lon {lng}
 
 Timeframe: {timeframe}
+
+Filters Applied: {filter_summary}
 
 Historical Event Data:
 
@@ -156,6 +159,7 @@ export function buildSafetyAdvisorSystemPrompt(context: SafetyAdvisorPromptConte
     .replace("{lat}", coordinates ? coordinates.lat : "Not provided")
     .replace("{lng}", coordinates ? coordinates.lng : "Not provided")
     .replace("{timeframe}", timeframeLabel)
+    .replace("{filter_summary}", context.filterSummary ?? "No additional filters applied.")
     .replace("{event_data_json}", buildEventDataJson(context.events))
 }
 
