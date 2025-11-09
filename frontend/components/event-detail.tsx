@@ -54,7 +54,7 @@ export function EventDetail({ event, onVerify, hasVerified }: EventDetailProps) 
             <span>{event.address}</span>
           </div>
 
-        <EventMap location={event.location} />
+        <EventMap location={event.location} radiusMeters={event.radiusMeters} category={event.category} />
 
       {/* Verification */}
           <div className="flex items-center justify-between">

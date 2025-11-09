@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useRef } from "react"
 import type { Event } from "@/types"
 import { CATEGORY_COLORS, CATEGORY_ICONS } from "@/lib/constants"
 import { importMapsLibrary, importMarkerLibrary } from "@/lib/google-maps"
@@ -12,10 +12,37 @@ interface EventMarkerProps {
 }
 
 export function EventMarker({ event, map, onSelect }: EventMarkerProps) {
+  const markerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null)
+  const circleRef = useRef<google.maps.Circle | null>(null)
+  const circleClickListenerRef = useRef<google.maps.MapsEventListener | null>(null)
+  const markerClickListenerRef = useRef<google.maps.MapsEventListener | null>(null)
+  const prevEventDataRef = useRef<string>("")
+  const prevMapRef = useRef<google.maps.Map | null>(null)
+
   useEffect(() => {
     if (!map) {
       return
     }
+
+    // Create a stable key from event properties that affect the overlay
+    const eventKey = `${event.id}-${event.location.lat}-${event.location.lng}-${event.radiusMeters}-${event.category}-${event.title}`
+    
+    // Check if map changed - if so, we need to recreate on the new map
+    const mapChanged = prevMapRef.current !== map
+    
+    // Only recreate if the actual event data changed or map changed, not just the object reference
+    // Check if marker exists and if circle exists (when radiusMeters > 0)
+    const hasMarker = !!markerRef.current
+    const shouldHaveCircle = event.radiusMeters && event.radiusMeters > 0
+    const hasCircle = !!circleRef.current
+    
+    if (!mapChanged && prevEventDataRef.current === eventKey && hasMarker && (shouldHaveCircle === hasCircle)) {
+      return
+    }
+    
+    prevMapRef.current = map
+
+    prevEventDataRef.current = eventKey
 
     let marker: google.maps.marker.AdvancedMarkerElement | null = null
     let circle: google.maps.Circle | null = null
@@ -25,6 +52,24 @@ export function EventMarker({ event, map, onSelect }: EventMarkerProps) {
 
     const createOverlay = async () => {
       try {
+        // Clean up existing overlays first
+        if (markerRef.current) {
+          markerRef.current.map = null
+          markerRef.current = null
+        }
+        if (circleRef.current) {
+          circleRef.current.setMap(null)
+          circleRef.current = null
+        }
+        if (circleClickListenerRef.current) {
+          circleClickListenerRef.current.remove()
+          circleClickListenerRef.current = null
+        }
+        if (markerClickListenerRef.current) {
+          markerClickListenerRef.current.remove()
+          markerClickListenerRef.current = null
+        }
+
         const mapsLibrary = await importMapsLibrary()
         const markerLibrary = await importMarkerLibrary()
         const AdvancedMarkerElement = markerLibrary.AdvancedMarkerElement
@@ -52,6 +97,8 @@ export function EventMarker({ event, map, onSelect }: EventMarkerProps) {
           circleClickListener = circle.addListener("click", () => {
             onSelect?.(event)
           })
+          circleRef.current = circle
+          circleClickListenerRef.current = circleClickListener
         }
 
         if (AdvancedMarkerElement) {
@@ -80,6 +127,8 @@ export function EventMarker({ event, map, onSelect }: EventMarkerProps) {
           markerClickListener = marker.addListener("click", () => {
             onSelect?.(event)
           })
+          markerRef.current = marker
+          markerClickListenerRef.current = markerClickListener
         } else {
           marker = new mapsLibrary.Marker({
             map,
@@ -90,6 +139,8 @@ export function EventMarker({ event, map, onSelect }: EventMarkerProps) {
           markerClickListener = marker.addListener("click", () => {
             onSelect?.(event)
           })
+          markerRef.current = marker
+          markerClickListenerRef.current = markerClickListener
         }
       } catch (error) {
         console.error("Failed to render event marker:", error)
@@ -100,20 +151,24 @@ export function EventMarker({ event, map, onSelect }: EventMarkerProps) {
 
     return () => {
       isMounted = false
-      if (marker) {
-        marker.map = null
+      if (markerRef.current) {
+        markerRef.current.map = null
+        markerRef.current = null
       }
-      if (circle) {
-        circle.setMap(null)
+      if (circleRef.current) {
+        circleRef.current.setMap(null)
+        circleRef.current = null
       }
-      if (circleClickListener) {
-        circleClickListener.remove()
+      if (circleClickListenerRef.current) {
+        circleClickListenerRef.current.remove()
+        circleClickListenerRef.current = null
       }
-      if (markerClickListener) {
-        markerClickListener.remove()
+      if (markerClickListenerRef.current) {
+        markerClickListenerRef.current.remove()
+        markerClickListenerRef.current = null
       }
     }
-  }, [event, map])
+  }, [event.id, event.location.lat, event.location.lng, event.radiusMeters, event.category, event.title, map, onSelect])
 
   return null
 }

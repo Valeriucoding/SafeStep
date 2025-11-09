@@ -27,13 +27,16 @@ export default function HomePage() {
   const unsubscribeFromRealtime = useEventsStore((state) => state.unsubscribeFromRealtime)
 
   useEffect(() => {
-    fetchEvents()
+    // Only fetch if we don't have events yet to avoid unnecessary refetching
+    if (events.length === 0) {
+      fetchEvents()
+    }
     subscribeToRealtime()
 
     return () => {
       unsubscribeFromRealtime()
     }
-  }, [fetchEvents, subscribeToRealtime, unsubscribeFromRealtime])
+  }, [events.length, fetchEvents, subscribeToRealtime, unsubscribeFromRealtime])
 
   const filteredEvents = useMemo(() => {
     if (!selectedCategory) {
