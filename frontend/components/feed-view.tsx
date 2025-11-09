@@ -4,7 +4,7 @@ import { EventCard } from "@/components/event-card"
 import type { Category, Event } from "@/types"
 import { CATEGORY_COLORS, CATEGORY_ICONS, CATEGORY_LABELS, CATEGORIES } from "@/lib/constants"
 import { cn } from "@/lib/utils"
-import type { CSSProperties } from "react"
+import { useState, type CSSProperties } from "react"
 
 interface FeedViewProps {
   events: Event[]
@@ -13,18 +13,50 @@ interface FeedViewProps {
 }
 
 export function FeedView({ events, selectedCategory, onCategoryChange }: FeedViewProps) {
+  const [filtersOpen, setFiltersOpen] = useState(false)
+
   return (
     <div className="h-full overflow-y-auto bg-background pb-24 sm:pb-28">
       {/* Header */}
       <header className="sticky top-0 z-10 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="px-4 py-3 space-y-3">
+        <div className="px-4 py-3 space-y-2">
           <div className="space-y-1">
             <h1 className="text-xl font-semibold">Event Feed</h1>
             <p className="text-sm text-muted-foreground">
               {events.length} active {events.length === 1 ? "event" : "events"}
             </p>
           </div>
-          <div className="flex flex-wrap items-start gap-2">
+          <div className="md:hidden">
+            <button
+              type="button"
+              onClick={() => setFiltersOpen((open) => !open)}
+              aria-expanded={filtersOpen}
+              className="flex w-full min-h-[44px] items-center justify-between rounded-lg border border-border bg-background px-4 py-2 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            >
+              <span>Filters</span>
+              <span className="text-xs uppercase text-muted-foreground">
+                {filtersOpen ? "Hide" : "Show"}
+              </span>
+            </button>
+            {!filtersOpen && selectedCategory && (
+              <div className="mt-2">
+                <CategoryPill
+                  label={CATEGORY_LABELS[selectedCategory]}
+                  icon={CATEGORY_ICONS[selectedCategory]}
+                  onClick={() => setFiltersOpen(true)}
+                  active
+                  accent={CATEGORY_COLORS[selectedCategory]}
+                />
+              </div>
+            )}
+          </div>
+          <div
+            className={cn(
+              "flex flex-wrap items-start gap-2",
+              filtersOpen ? "mt-3" : "hidden",
+              "md:mt-0 md:flex",
+            )}
+          >
             <CategoryPill
               label="All"
               onClick={() => onCategoryChange(null)}
