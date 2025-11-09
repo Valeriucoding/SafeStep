@@ -2,7 +2,7 @@
 
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { CATEGORY_LABELS, CATEGORY_ICONS } from "@/lib/constants"
+import { CATEGORY_LABELS, CATEGORY_ICONS, CRIME_ALERT_SUBCATEGORY_LABELS } from "@/lib/constants"
 import { MapPin, Calendar, CheckCircle2 } from "lucide-react"
 import { formatDistanceToNow } from "date-fns"
 import Image from "next/image"
@@ -16,6 +16,9 @@ interface EventCardProps {
 export function EventCard({ event }: EventCardProps) {
   const categoryLabel = CATEGORY_LABELS[event.category as keyof typeof CATEGORY_LABELS]
   const categoryIcon = CATEGORY_ICONS[event.category as keyof typeof CATEGORY_ICONS]
+  const subcategoryLabel =
+    event.subcategory &&
+    CRIME_ALERT_SUBCATEGORY_LABELS[event.subcategory as keyof typeof CRIME_ALERT_SUBCATEGORY_LABELS]
 
   return (
     <Link href={`/event/${event.id}`}>
@@ -41,11 +44,16 @@ export function EventCard({ event }: EventCardProps) {
           <div className="flex min-w-0 flex-1 flex-col gap-4 p-4 sm:p-5">
             <div className="flex items-start justify-between gap-3">
               <div className="flex min-w-0 flex-1 flex-col gap-2">
-                <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                <div className="flex flex-wrap items-center gap-2 text-sm font-medium text-muted-foreground">
                   <span className="text-xl leading-none">{categoryIcon}</span>
                   <Badge variant="secondary" className="rounded-full px-3 py-1 text-xs">
                     {categoryLabel}
                   </Badge>
+                  {subcategoryLabel && (
+                    <Badge variant="outline" className="rounded-full border-dashed px-3 py-1 text-xs">
+                      {subcategoryLabel}
+                    </Badge>
+                  )}
                 </div>
                 <h3 className="line-clamp-2 text-lg font-semibold tracking-tight text-foreground transition-colors group-hover:text-primary">
                   {event.title}

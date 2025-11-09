@@ -6,6 +6,7 @@ export interface EventRow {
   title: string
   description: string | null
   category: Category
+  subcategory: string | null
   lat: number
   lng: number
   address: string | null
@@ -21,6 +22,7 @@ export const mapEventRowToEvent = (row: EventRow): Event => ({
   title: row.title,
   description: row.description ?? "",
   category: row.category,
+  subcategory: (row.subcategory as Event["subcategory"]) ?? null,
   location: {
     lat: row.lat,
     lng: row.lng,

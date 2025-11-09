@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { CATEGORY_ICONS, CATEGORY_LABELS } from "@/lib/constants"
+import { CATEGORY_ICONS, CATEGORY_LABELS, CRIME_ALERT_SUBCATEGORY_LABELS } from "@/lib/constants"
 import type { Event } from "@/types"
 import { Calendar, CheckCircle2, MapPin, MessageCircle, X } from "lucide-react"
 import Link from "next/link"
@@ -15,6 +15,9 @@ interface MapEventPreviewProps {
 export function MapEventPreview({ event, onDismiss }: MapEventPreviewProps) {
   const categoryLabel = CATEGORY_LABELS[event.category as keyof typeof CATEGORY_LABELS] ?? event.category
   const categoryIcon = CATEGORY_ICONS[event.category as keyof typeof CATEGORY_ICONS] ?? "📍"
+  const subcategoryLabel =
+    event.subcategory &&
+    CRIME_ALERT_SUBCATEGORY_LABELS[event.subcategory as keyof typeof CRIME_ALERT_SUBCATEGORY_LABELS]
 
   return (
     <div className="pointer-events-auto relative">
@@ -50,9 +53,16 @@ export function MapEventPreview({ event, onDismiss }: MapEventPreviewProps) {
                 {categoryIcon}
               </span>
               <div className="flex flex-1 flex-col gap-1 overflow-hidden">
-                <Badge variant="secondary" className="w-fit rounded-full px-3 py-1 text-xs">
-                  {categoryLabel}
-                </Badge>
+                <div className="flex flex-wrap items-center gap-1">
+                  <Badge variant="secondary" className="w-fit rounded-full px-3 py-1 text-xs">
+                    {categoryLabel}
+                  </Badge>
+                  {subcategoryLabel && (
+                    <Badge variant="outline" className="w-fit rounded-full border-dashed px-3 py-1 text-xs">
+                      {subcategoryLabel}
+                    </Badge>
+                  )}
+                </div>
                 <h3 className="line-clamp-2 text-base font-semibold text-foreground">{event.title}</h3>
               </div>
               {event.verificationCount > 0 && (

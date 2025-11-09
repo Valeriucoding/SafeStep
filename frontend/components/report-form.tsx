@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useId, useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
@@ -11,9 +11,21 @@ import { Label } from "@/components/ui/label"
 import { ImageUpload } from "@/components/image-upload"
 import { CategorySelect } from "@/components/category-select"
 import { Loader2 } from "lucide-react"
-import type { Category, NewEvent } from "@/types"
+import type { Category, CrimeAlertSubcategory, NewEvent } from "@/types"
+import {
+  CRIME_ALERT_SUBCATEGORIES,
+  CRIME_ALERT_SUBCATEGORY_LABELS,
+} from "@/lib/constants"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 const CATEGORY_VALUES = ["danger", "blocked-path", "protest", "event", "crime-alert"] as const satisfies readonly Category[]
+const CRIME_ALERT_SUBCATEGORY_VALUES = CRIME_ALERT_SUBCATEGORIES satisfies readonly CrimeAlertSubcategory[]
 
 const reportSchema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters"),
@@ -23,7 +35,19 @@ const reportSchema = z.object({
   }),
   address: z.string().min(5, "Address must be at least 5 characters"),
   imageUrl: z.string().optional(),
-})
+  subcategory: z.enum(CRIME_ALERT_SUBCATEGORY_VALUES).optional(),
+}).refine(
+  (data) => {
+    if (data.category !== "crime-alert") {
+      return true
+    }
+    return !!data.subcategory
+  },
+  {
+    message: "Please select a subcategory",
+    path: ["subcategory"],
+  },
+)
 
 type ReportFormData = z.infer<typeof reportSchema>
 
@@ -36,6 +60,12 @@ interface ReportFormProps {
 
 export function ReportForm({ onSubmit, isSubmitting, disabled, radiusMeters }: ReportFormProps) {
   const [imageUrl, setImageUrl] = useState<string>()
+  const idPrefix = useId()
+  const categoryFieldId = `${idPrefix}-category`
+  const subcategoryFieldId = `${idPrefix}-subcategory`
+  const titleFieldId = `${idPrefix}-title`
+  const descriptionFieldId = `${idPrefix}-description`
+  const addressFieldId = `${idPrefix}-address`
 
   const {
     register,
@@ -48,6 +78,17 @@ export function ReportForm({ onSubmit, isSubmitting, disabled, radiusMeters }: R
   })
 
   const category = watch("category")
+  const subcategory = watch("subcategory")
+
+  const handleCategoryChange = (value: Category) => {
+    setValue("category", value, { shouldValidate: true })
+
+    if (value === "crime-alert") {
+      setValue("subcategory", CRIME_ALERT_SUBCATEGORY_VALUES[0], { shouldValidate: true })
+    } else {
+      setValue("subcategory", undefined, { shouldValidate: true })
+    }
+  }
 
   const onFormSubmit = async (data: ReportFormData) => {
     await onSubmit({
@@ -61,18 +102,45 @@ export function ReportForm({ onSubmit, isSubmitting, disabled, radiusMeters }: R
     <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-8">
       {/* Category Selection */}
       <div className="space-y-3">
-        <Label htmlFor="category" className="text-base font-medium">Category *</Label>
-        <CategorySelect value={category} onChange={(value) => setValue("category", value)} />
+        <Label htmlFor={categoryFieldId} className="text-base font-medium">Category *</Label>
+        <div id={categoryFieldId}>
+          <CategorySelect value={category} onChange={handleCategoryChange} />
+        </div>
         {errors.category && <p className="text-sm text-destructive mt-1">{errors.category.message}</p>}
       </div>
+
+      {category === "crime-alert" && (
+        <div className="space-y-3">
+          <Label htmlFor={subcategoryFieldId} className="text-base font-medium">Crime alert type *</Label>
+          <input type="hidden" {...register("subcategory")} />
+          <Select
+            value={subcategory ?? undefined}
+            onValueChange={(value) =>
+              setValue("subcategory", value as CrimeAlertSubcategory, { shouldValidate: true })
+            }
+          >
+            <SelectTrigger id={subcategoryFieldId} className="h-12 text-base">
+              <SelectValue placeholder="Select alert type" />
+            </SelectTrigger>
+            <SelectContent>
+              {CRIME_ALERT_SUBCATEGORY_VALUES.map((option) => (
+                <SelectItem key={option} value={option} className="text-base">
+                  {CRIME_ALERT_SUBCATEGORY_LABELS[option]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {errors.subcategory && <p className="text-sm text-destructive mt-1">{errors.subcategory.message}</p>}
+        </div>
+      )}
 
       <div className="border-t border-border" />
 
       {/* Title */}
       <div className="space-y-3">
-        <Label htmlFor="title" className="text-base font-medium">Title *</Label>
+        <Label htmlFor={titleFieldId} className="text-base font-medium">Title *</Label>
         <Input 
-          id="title" 
+          id={titleFieldId} 
           placeholder="Brief description of the incident" 
           className="h-12 text-base"
           {...register("title")} 
@@ -82,9 +150,9 @@ export function ReportForm({ onSubmit, isSubmitting, disabled, radiusMeters }: R
 
       {/* Description */}
       <div className="space-y-3">
-        <Label htmlFor="description" className="text-base font-medium">Description *</Label>
+        <Label htmlFor={descriptionFieldId} className="text-base font-medium">Description *</Label>
         <Textarea
-          id="description"
+          id={descriptionFieldId}
           placeholder="Provide more details about what happened..."
           rows={5}
           className="text-base resize-none"
@@ -95,9 +163,9 @@ export function ReportForm({ onSubmit, isSubmitting, disabled, radiusMeters }: R
 
       {/* Address */}
       <div className="space-y-3">
-        <Label htmlFor="address" className="text-base font-medium">Address *</Label>
+        <Label htmlFor={addressFieldId} className="text-base font-medium">Address *</Label>
         <Input 
-          id="address" 
+          id={addressFieldId} 
           placeholder="Street address or landmark" 
           className="h-12 text-base"
           {...register("address")} 

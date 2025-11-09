@@ -1,6 +1,7 @@
 "use client"
 
-import { FormEvent, useEffect, useMemo, useRef, useState } from "react"
+import type { FormEvent } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { formatDistanceToNow } from "date-fns"
 import { Loader2, Send } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -122,8 +123,10 @@ export function EventChat({ eventId }: EventChatProps) {
     }
   }, [eventId, supabase])
 
+  const messageCount = messages.length
+
   useEffect(() => {
-    if (!hasMessages) {
+    if (messageCount === 0) {
       return
     }
     const timeout = window.setTimeout(() => {
@@ -133,7 +136,7 @@ export function EventChat({ eventId }: EventChatProps) {
     return () => {
       window.clearTimeout(timeout)
     }
-  }, [hasMessages, messages])
+  }, [messageCount])
 
   const handleSendMessage = async () => {
     if (!input.trim() || isSending) {

@@ -3,7 +3,7 @@
 import { Card, CardContent, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { CATEGORY_LABELS, CATEGORY_ICONS } from "@/lib/constants"
+import { CATEGORY_LABELS, CATEGORY_ICONS, CRIME_ALERT_SUBCATEGORY_LABELS } from "@/lib/constants"
 import { MapPin, Calendar, CheckCircle2, AlertCircle } from "lucide-react"
 import { formatDistanceToNow } from "date-fns"
 import Image from "next/image"
@@ -19,6 +19,9 @@ interface EventDetailProps {
 export function EventDetail({ event, onVerify, hasVerified }: EventDetailProps) {
   const categoryLabel = CATEGORY_LABELS[event.category as keyof typeof CATEGORY_LABELS]
   const categoryIcon = CATEGORY_ICONS[event.category as keyof typeof CATEGORY_ICONS]
+  const subcategoryLabel =
+    event.subcategory &&
+    CRIME_ALERT_SUBCATEGORY_LABELS[event.subcategory as keyof typeof CRIME_ALERT_SUBCATEGORY_LABELS]
 
   return (
     <div className="mx-auto max-w-2xl p-1 space-y-4">
@@ -28,6 +31,11 @@ export function EventDetail({ event, onVerify, hasVerified }: EventDetailProps) 
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-2xl">{categoryIcon}</span>
                   <Badge variant="outline">{categoryLabel}</Badge>
+                  {subcategoryLabel && (
+                    <Badge variant="secondary" className="border-dashed">
+                      {subcategoryLabel}
+                    </Badge>
+                  )}
                   <Badge variant={event.isActive ? "default" : "secondary"}>
                     {event.isActive ? (
                       <>

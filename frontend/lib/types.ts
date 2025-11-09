@@ -1,4 +1,5 @@
 export type Category = "danger" | "blocked-path" | "protest" | "event" | "crime-alert"
+export type CrimeAlertSubcategory = "pickpockets"
 export type Urgency = "low" | "medium" | "high"
 
 export interface Location {
@@ -22,6 +23,7 @@ export interface Verification {
 export interface Incident {
   id: string
   category: Category
+  subcategory?: CrimeAlertSubcategory | null
   urgency: Urgency
   location: Location
   radiusMeters?: number
@@ -50,6 +52,7 @@ export interface DailySummary {
 export interface CreateIncidentData {
   image: File | null
   category: Category
+  subcategory?: CrimeAlertSubcategory | null
   urgency: Urgency
   location: Location
   description?: string

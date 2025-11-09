@@ -9,8 +9,10 @@ import { BottomNav } from "@/components/bottom-nav"
 import { useUserLocation } from "@/hooks/use-user-location"
 import { MapEventPreview } from "@/components/map-event-preview"
 import { UserLocationMarker } from "@/components/user-location-marker"
+import { PickpocketClusterOverlay } from "@/components/pickpocket-cluster"
 import type { Category, Event } from "@/types"
 import { useEventsStore } from "@/store/events-store"
+import { derivePickpocketClusters } from "@/lib/utils/geospatial"
 import { Loader2 } from "lucide-react"
 
 export default function HomePage() {
@@ -45,6 +47,26 @@ export default function HomePage() {
     return events.filter((event) => event.category === selectedCategory)
   }, [events, selectedCategory])
 
+  const pickpocketClusters = useMemo(
+    () =>
+      derivePickpocketClusters(events, {
+        proximityMeters: 500,
+        minimumEvents: 3,
+        lookbackHours: 24,
+      }),
+    [events],
+  )
+
+  const clusteredEventIds = useMemo(() => {
+    const ids = new Set<string>()
+    pickpocketClusters.forEach((cluster) => {
+      cluster.events.forEach((event) => {
+        ids.add(event.id)
+      })
+    })
+    return ids
+  }, [pickpocketClusters])
+
   useEffect(() => {
     if (!mapInstance || location || filteredEvents.length === 0) {
       return
@@ -55,7 +77,9 @@ export default function HomePage() {
     }
 
     const bounds = new google.maps.LatLngBounds()
-    filteredEvents.forEach((event) => bounds.extend(event.location))
+    filteredEvents.forEach((event) => {
+      bounds.extend(event.location)
+    })
     mapInstance.fitBounds(bounds, { top: 48, right: 48, bottom: 48, left: 48 })
   }, [mapInstance, location, filteredEvents])
 
@@ -123,9 +147,14 @@ export default function HomePage() {
             {location && (
               <UserLocationMarker location={location} accuracy={accuracy} />
             )}
-            {filteredEvents.map((event) => (
-              <EventMarker key={event.id} event={event} onSelect={handleMarkerSelect} />
+            {pickpocketClusters.map((cluster) => (
+              <PickpocketClusterOverlay key={cluster.id} cluster={cluster} />
             ))}
+            {filteredEvents
+              .filter((event) => !clusteredEventIds.has(event.id))
+              .map((event) => (
+                <EventMarker key={event.id} event={event} onSelect={handleMarkerSelect} />
+              ))}
           </MapView>
           <MapControls
             selectedCategory={selectedCategory}

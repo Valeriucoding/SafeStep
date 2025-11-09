@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
-import { ArrowLeft, Info, MapPin, Send } from "lucide-react"
+import { ArrowLeft, Info, Send } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
@@ -45,26 +45,21 @@ export function SafetyChat() {
   const [error, setError] = useState<string | null>(null)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const formRef = useRef<HTMLFormElement>(null)
+  const messagesRef = useRef<ChatMessage[]>([])
 
-  const { location, requestLocation, isLoading: isLocating, error: locationError } = useUserLocation()
+  const { location, requestLocation } = useUserLocation()
 
   useEffect(() => {
     requestLocation()
   }, [requestLocation])
 
-  const locationSummary = useMemo(() => {
-    if (!location) {
-      return null
-    }
-    return `${location.lat.toFixed(4)}, ${location.lng.toFixed(4)}`
-  }, [location])
-
   const currentLocation: Location | null = useMemo(() => location ?? null, [location])
 
-  const timeframeCopy =
-    DEFAULT_TIMEFRAME_MONTHS && DEFAULT_TIMEFRAME_MONTHS > 0
-      ? `Summaries consider the last ${DEFAULT_TIMEFRAME_MONTHS} months of nearby events.`
-      : "Summaries consider all available nearby historical events."
+  useEffect(() => {
+    messagesRef.current = messages
+  }, [messages])
+
+  const lastMessageId = messages.length > 0 ? messages[messages.length - 1]?.id : null
 
   const handleSubmit = useCallback(
     async (event: React.FormEvent<HTMLFormElement>) => {
@@ -83,10 +78,8 @@ export function SafetyChat() {
         createdAt: new Date().toISOString(),
       }
 
-      const optimisticHistory = [...messages, userMessage]
-
-      setMessages((prev) => [...prev, userMessage])
-      setInputValue("")
+      const baseHistory = messagesRef.current
+      const optimisticHistory = [...baseHistory, userMessage]
 
       const placeholderMessage: ChatMessage = {
         id: createMessageId(),
@@ -95,7 +88,9 @@ export function SafetyChat() {
         createdAt: new Date().toISOString(),
         isStreaming: true,
       }
-      setMessages((prev) => [...prev, placeholderMessage])
+
+      setMessages((prev) => [...prev, userMessage, placeholderMessage])
+      setInputValue("")
 
       try {
         const response = await fetch("/api/ai-chat", {
@@ -126,12 +121,14 @@ export function SafetyChat() {
           throw new Error("AI response was empty")
         }
 
+        const responseMessage = data.message as string
+
         setMessages((prev) =>
           prev.map((msg) =>
             msg.id === placeholderMessage.id
               ? {
                   ...msg,
-                  content: data.message,
+                  content: responseMessage,
                   createdAt: new Date().toISOString(),
                   isStreaming: false,
                 }
@@ -156,18 +153,18 @@ export function SafetyChat() {
         setIsSubmitting(false)
       }
     },
-    [currentLocation, inputValue, isSubmitting, messages],
+    [currentLocation, inputValue, isSubmitting],
   )
 
   useEffect(() => {
-    if (!scrollContainerRef.current) {
+    if (!scrollContainerRef.current || !lastMessageId) {
       return
     }
     scrollContainerRef.current.scrollTo({
       top: scrollContainerRef.current.scrollHeight,
       behavior: "smooth",
     })
-  }, [messages])
+  }, [lastMessageId])
 
   const handleInputKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLTextAreaElement>) => {

@@ -1,5 +1,7 @@
 export type Category = "danger" | "blocked-path" | "event" | "protest" | "crime-alert"
 
+export type CrimeAlertSubcategory = "pickpockets"
+
 export interface Location {
   lat: number
   lng: number
@@ -10,6 +12,7 @@ export interface Event {
   title: string
   description: string
   category: Category
+  subcategory?: CrimeAlertSubcategory | null
   location: Location
   address: string
   createdAt: string
@@ -32,6 +35,7 @@ export interface NewEvent {
   title: string
   description: string
   category: Category
+  subcategory?: CrimeAlertSubcategory | null
   location: Location
   address: string
   imageUrl?: string

@@ -41,6 +41,7 @@ export async function createEvent(event: NewEvent): Promise<Event> {
         title: event.title,
         description: event.description ?? "",
         category: event.category,
+        subcategory: event.subcategory ?? null,
         lat: event.location.lat,
         lng: event.location.lng,
         address: event.address,
