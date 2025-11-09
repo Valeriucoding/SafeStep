@@ -1,4 +1,4 @@
-import type { Event } from "@/types"
+import type { Event, EventStatus } from "@/types"
 import type { Category } from "@/types"
 
 export interface EventRow {
@@ -14,6 +14,8 @@ export interface EventRow {
   verification_count: number | null
   is_active: boolean | null
   radius_meters: number | null
+  status: EventStatus | null
+  reporter_id: string | null
 }
 
 export const mapEventRowToEvent = (row: EventRow): Event => ({
@@ -31,5 +33,7 @@ export const mapEventRowToEvent = (row: EventRow): Event => ({
   verificationCount: row.verification_count ?? 0,
   isActive: row.is_active ?? true,
   radiusMeters: row.radius_meters ?? undefined,
+  status: (row.status ?? "pending") as EventStatus,
+  reporterId: row.reporter_id ?? null,
 })
 

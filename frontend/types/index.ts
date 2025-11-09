@@ -1,5 +1,7 @@
 export type Category = "danger" | "blocked-path" | "event" | "protest" | "crime-alert"
 
+export type EventStatus = "pending" | "valid" | "spam" | "false"
+
 export interface Location {
   lat: number
   lng: number
@@ -17,6 +19,8 @@ export interface Event {
   verificationCount: number
   isActive: boolean
   radiusMeters?: number
+  status: EventStatus
+  reporterId: string | null
 }
 
 export interface EventMessage {

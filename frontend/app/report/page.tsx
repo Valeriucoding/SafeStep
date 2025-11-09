@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 import { ReportForm } from "@/components/report-form"
 import { LocationPicker } from "@/components/location-picker"
@@ -11,16 +11,109 @@ import Link from "next/link"
 import { createEvent } from "@/lib/api"
 import { useUserLocation } from "@/hooks/use-user-location"
 import type { Location, NewEvent } from "@/types"
+import { useAuth } from "@/lib/hooks/use-auth"
+import { formatDistanceToNow } from "date-fns"
 
 export default function ReportPage() {
   const router = useRouter()
+  const { user, supabase } = useAuth()
   const { location: userLocation, requestLocation } = useUserLocation()
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null)
   const [radiusMeters, setRadiusMeters] = useState<number>(0)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [reportBanUntil, setReportBanUntil] = useState<string | null>(null)
+  const [isProfileLoading, setIsProfileLoading] = useState(false)
+  const [profileError, setProfileError] = useState<string | null>(null)
+
+  useEffect(() => {
+    let isMounted = true
+
+    const loadProfileMetrics = async () => {
+      if (!user?.id || !supabase) {
+        if (isMounted) {
+          setReportBanUntil(null)
+          setProfileError(null)
+          setIsProfileLoading(false)
+        }
+        return
+      }
+
+      setIsProfileLoading(true)
+      setProfileError(null)
+
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("report_ban_until")
+        .eq("id", user.id)
+        .maybeSingle()
+
+      if (!isMounted) {
+        return
+      }
+
+      if (error) {
+        console.error("[report] Failed to load reporter profile metrics:", error)
+        setProfileError("We couldn't verify your reporting status. Please try again shortly.")
+        setReportBanUntil(null)
+      } else {
+        setReportBanUntil(data?.report_ban_until ?? null)
+      }
+
+      setIsProfileLoading(false)
+    }
+
+    void loadProfileMetrics()
+
+    return () => {
+      isMounted = false
+    }
+  }, [supabase, user?.id])
+
+  const isBanActive = useMemo(() => {
+    if (!reportBanUntil) {
+      return false
+    }
+
+    const banDate = new Date(reportBanUntil)
+    return Number.isFinite(banDate.getTime()) && banDate.getTime() > Date.now()
+  }, [reportBanUntil])
+
+  const authBlocked = !user
+  const errorBlocked = Boolean(profileError)
+  const banBlocked = isBanActive
+  const loadingBlocked = isProfileLoading
+
+  const isReportingBlocked = authBlocked || loadingBlocked || banBlocked || errorBlocked
+
+  const blockedMessage = useMemo(() => {
+    if (authBlocked) {
+      return "Sign in to share safety updates with the community."
+    }
+
+    if (loadingBlocked) {
+      return "Checking your reporting status..."
+    }
+
+    if (banBlocked && reportBanUntil) {
+      const banDate = new Date(reportBanUntil)
+      if (Number.isFinite(banDate.getTime())) {
+        const relative = formatDistanceToNow(banDate, { addSuffix: true })
+        return `Reporting is temporarily disabled until ${banDate.toLocaleString()} (${relative}).`
+      }
+      return "Reporting is temporarily disabled right now."
+    }
+
+    if (errorBlocked && profileError) {
+      return profileError
+    }
+
+    return null
+  }, [authBlocked, banBlocked, errorBlocked, loadingBlocked, profileError, reportBanUntil])
 
   const handleSubmit = async (data: Omit<NewEvent, "location">) => {
-    if (!selectedLocation) return
+    if (!selectedLocation || isReportingBlocked) {
+      return
+    }
 
     setIsSubmitting(true)
     try {
@@ -104,6 +197,8 @@ export default function ReportPage() {
           isSubmitting={isSubmitting}
           disabled={!selectedLocation}
           radiusMeters={radiusMeters}
+          isReportingBlocked={isReportingBlocked}
+          blockedReason={blockedMessage}
         />
       </div>
     </div>

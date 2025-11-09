@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useId, useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
@@ -32,10 +32,23 @@ interface ReportFormProps {
   isSubmitting: boolean
   disabled?: boolean
   radiusMeters?: number
+  isReportingBlocked?: boolean
+  blockedReason?: string | null
 }
 
-export function ReportForm({ onSubmit, isSubmitting, disabled, radiusMeters }: ReportFormProps) {
+export function ReportForm({
+  onSubmit,
+  isSubmitting,
+  disabled,
+  radiusMeters,
+  isReportingBlocked,
+  blockedReason,
+}: ReportFormProps) {
   const [imageUrl, setImageUrl] = useState<string>()
+  const baseId = useId()
+  const titleId = `${baseId}-title`
+  const descriptionId = `${baseId}-description`
+  const addressId = `${baseId}-address`
 
   const {
     register,
@@ -50,6 +63,10 @@ export function ReportForm({ onSubmit, isSubmitting, disabled, radiusMeters }: R
   const category = watch("category")
 
   const onFormSubmit = async (data: ReportFormData) => {
+    if (isReportingBlocked) {
+      return
+    }
+
     await onSubmit({
       ...data,
       imageUrl,
@@ -70,9 +87,11 @@ export function ReportForm({ onSubmit, isSubmitting, disabled, radiusMeters }: R
 
       {/* Title */}
       <div className="space-y-3">
-        <Label htmlFor="title" className="text-base font-medium">Title *</Label>
+        <Label htmlFor={titleId} className="text-base font-medium">
+          Title *
+        </Label>
         <Input 
-          id="title" 
+          id={titleId}
           placeholder="Brief description of the incident" 
           className="h-12 text-base"
           {...register("title")} 
@@ -82,9 +101,11 @@ export function ReportForm({ onSubmit, isSubmitting, disabled, radiusMeters }: R
 
       {/* Description */}
       <div className="space-y-3">
-        <Label htmlFor="description" className="text-base font-medium">Description *</Label>
+        <Label htmlFor={descriptionId} className="text-base font-medium">
+          Description *
+        </Label>
         <Textarea
-          id="description"
+          id={descriptionId}
           placeholder="Provide more details about what happened..."
           rows={5}
           className="text-base resize-none"
@@ -95,9 +116,11 @@ export function ReportForm({ onSubmit, isSubmitting, disabled, radiusMeters }: R
 
       {/* Address */}
       <div className="space-y-3">
-        <Label htmlFor="address" className="text-base font-medium">Address *</Label>
+        <Label htmlFor={addressId} className="text-base font-medium">
+          Address *
+        </Label>
         <Input 
-          id="address" 
+          id={addressId}
           placeholder="Street address or landmark" 
           className="h-12 text-base"
           {...register("address")} 
@@ -114,8 +137,13 @@ export function ReportForm({ onSubmit, isSubmitting, disabled, radiusMeters }: R
       </div>
 
       {/* Submit Button */}
-      <div className="pt-4">
-        <Button type="submit" className="w-full h-12 text-base font-medium" size="lg" disabled={disabled || isSubmitting}>
+      <div className="pt-4 space-y-3">
+        <Button
+          type="submit"
+          className="w-full h-12 text-base font-medium"
+          size="lg"
+          disabled={disabled || isSubmitting || Boolean(isReportingBlocked)}
+        >
           {isSubmitting ? (
             <>
               <Loader2 className="mr-2 h-5 w-5 animate-spin" />
@@ -125,8 +153,13 @@ export function ReportForm({ onSubmit, isSubmitting, disabled, radiusMeters }: R
             "Submit Report"
           )}
         </Button>
-        {disabled && (
-          <p className="text-sm text-center text-muted-foreground mt-3">Please select a location on the map above</p>
+        {disabled && !isReportingBlocked && (
+          <p className="text-sm text-center text-muted-foreground">Please select a location on the map above</p>
+        )}
+        {isReportingBlocked && (
+          <p className="text-sm text-center text-destructive">
+            {blockedReason ?? "Reporting is temporarily unavailable."}
+          </p>
         )}
       </div>
     </form>
