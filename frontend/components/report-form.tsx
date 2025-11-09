@@ -31,9 +31,10 @@ interface ReportFormProps {
   onSubmit: (data: Omit<NewEvent, "location">) => Promise<void>
   isSubmitting: boolean
   disabled?: boolean
+  radiusMeters?: number
 }
 
-export function ReportForm({ onSubmit, isSubmitting, disabled }: ReportFormProps) {
+export function ReportForm({ onSubmit, isSubmitting, disabled, radiusMeters }: ReportFormProps) {
   const [imageUrl, setImageUrl] = useState<string>()
 
   const {
@@ -49,12 +50,11 @@ export function ReportForm({ onSubmit, isSubmitting, disabled }: ReportFormProps
   const category = watch("category")
 
   const onFormSubmit = async (data: ReportFormData) => {
-    await onSubmit(
-      {
-        ...data,
-        imageUrl,
-      },
-    )
+    await onSubmit({
+      ...data,
+      imageUrl,
+      ...(radiusMeters && radiusMeters > 0 ? { radiusMeters } : {}),
+    })
   }
 
   return (

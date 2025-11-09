@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { ReportForm } from "@/components/report-form"
 import { LocationPicker } from "@/components/location-picker"
 import { Button } from "@/components/ui/button"
+import { Slider } from "@/components/ui/slider"
 import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { createEvent } from "@/lib/api"
@@ -15,6 +16,7 @@ export default function ReportPage() {
   const router = useRouter()
   const { location: userLocation, requestLocation } = useUserLocation()
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null)
+  const [radiusMeters, setRadiusMeters] = useState<number>(0)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const handleSubmit = async (data: Omit<NewEvent, "location">) => {
@@ -24,6 +26,7 @@ export default function ReportPage() {
     try {
       const newEvent: NewEvent = {
         ...data,
+        radiusMeters: radiusMeters > 0 ? radiusMeters : undefined,
         location: {
           lat: selectedLocation.lat,
           lng: selectedLocation.lng,
@@ -59,14 +62,49 @@ export default function ReportPage() {
       </div>
 
       <div className="space-y-8">
-        <LocationPicker
-          userLocation={userLocation}
-          selectedLocation={selectedLocation}
-          onLocationChange={setSelectedLocation}
-          onRequestLocation={requestLocation}
-        />
+        <div className="space-y-5">
+          <LocationPicker
+            userLocation={userLocation}
+            selectedLocation={selectedLocation}
+            onLocationChange={setSelectedLocation}
+            onRequestLocation={requestLocation}
+            radiusMeters={radiusMeters}
+          />
 
-        <ReportForm onSubmit={handleSubmit} isSubmitting={isSubmitting} disabled={!selectedLocation} />
+          <div className="rounded-xl border border-border bg-background px-4 py-4 shadow-sm">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex flex-col">
+                <span className="text-base font-medium text-foreground">Impact radius</span>
+                <span className="text-sm text-muted-foreground">
+                  Set a radius to highlight the affected zone (0 hides the overlay)
+                </span>
+              </div>
+              <span className="text-sm font-semibold text-primary">
+                {radiusMeters > 0 ? `${radiusMeters} m` : "Off"}
+              </span>
+            </div>
+            <div className="mt-4 px-1">
+              <Slider
+                aria-label="Impact radius in meters"
+                value={[radiusMeters]}
+                min={0}
+                max={1000}
+                step={10}
+                onValueChange={(value) => {
+                  const next = value[0]
+                  setRadiusMeters(typeof next === "number" ? next : radiusMeters)
+                }}
+              />
+            </div>
+          </div>
+        </div>
+
+        <ReportForm
+          onSubmit={handleSubmit}
+          isSubmitting={isSubmitting}
+          disabled={!selectedLocation}
+          radiusMeters={radiusMeters}
+        />
       </div>
     </div>
   )

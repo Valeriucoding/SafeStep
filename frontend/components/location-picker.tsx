@@ -12,6 +12,7 @@ interface LocationPickerProps {
   selectedLocation: Location | null
   onLocationChange: (location: Location) => void
   onRequestLocation: () => void
+  radiusMeters?: number
 }
 
 export function LocationPicker({
@@ -19,10 +20,12 @@ export function LocationPicker({
   selectedLocation,
   onLocationChange,
   onRequestLocation,
+  radiusMeters,
 }: LocationPickerProps) {
   const mapRef = useRef<HTMLDivElement>(null)
   const [map, setMap] = useState<google.maps.Map | null>(null)
   const markerRef = useRef<google.maps.Marker | null>(null)
+  const circleRef = useRef<google.maps.Circle | null>(null)
 
   useEffect(() => {
     const initMap = async () => {
@@ -76,11 +79,45 @@ export function LocationPicker({
         })
 
         map.panTo(selectedLocation)
+      } else if (markerRef.current) {
+        markerRef.current.setMap(null)
+        markerRef.current = null
       }
     }
 
     updateMarker()
   }, [map, selectedLocation])
+
+  useEffect(() => {
+    if (!map) {
+      return
+    }
+
+    if (!selectedLocation || !radiusMeters || radiusMeters <= 0) {
+      if (circleRef.current) {
+        circleRef.current.setMap(null)
+        circleRef.current = null
+      }
+      return
+    }
+
+    if (!circleRef.current) {
+      circleRef.current = new google.maps.Circle({
+        map,
+        center: selectedLocation,
+        radius: radiusMeters,
+        strokeColor: "#1D4ED8",
+        strokeOpacity: 0.4,
+        strokeWeight: 2,
+        fillColor: "#1D4ED8",
+        fillOpacity: 0.1,
+      })
+    } else {
+      circleRef.current.setMap(map)
+      circleRef.current.setCenter(selectedLocation)
+      circleRef.current.setRadius(radiusMeters)
+    }
+  }, [map, selectedLocation, radiusMeters])
 
   useEffect(() => {
     if (map && userLocation) {

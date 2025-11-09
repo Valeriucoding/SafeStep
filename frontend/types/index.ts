@@ -35,6 +35,7 @@ export interface NewEvent {
   location: Location
   address: string
   imageUrl?: string
+  radiusMeters?: number
 }
 
 export type SafetyAdvisorRequestType =
