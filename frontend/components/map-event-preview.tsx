@@ -20,12 +20,14 @@ export function MapEventPreview({ event, onDismiss }: MapEventPreviewProps) {
     <div className="pointer-events-auto relative">
       <div className="absolute left-[calc(theme(spacing.3)-2px)] top-[-16px] z-20 transform">
         <Button
+          asChild
           size="icon"
           variant="secondary"
           className="h-12 w-12 rounded-full bg-background/90 shadow-lg backdrop-blur transition-colors hover:bg-background"
-          aria-label="Open safety chat"
         >
-          <MessageCircle className="h-5 w-5 text-primary" />
+          <Link href={`/event/${event.id}/chat`} aria-label="Open event chat">
+            <MessageCircle className="h-5 w-5 text-primary" />
+          </Link>
         </Button>
       </div>
       <Card className="relative mx-auto w-[min(92%,420px)] overflow-hidden rounded-3xl border border-border/70 bg-background shadow-lg">

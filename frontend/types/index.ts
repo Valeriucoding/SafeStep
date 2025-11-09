@@ -19,6 +19,15 @@ export interface Event {
   radiusMeters?: number
 }
 
+export interface EventMessage {
+  id: string
+  eventId: string
+  userId: string | null
+  userEmail: string | null
+  content: string
+  createdAt: string
+}
+
 export interface NewEvent {
   title: string
   description: string
