@@ -1,13 +1,14 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect, useMemo, useCallback } from "react"
 import { MapView } from "@/components/map-view"
 import { EventMarker } from "@/components/event-marker"
 import { MapControls } from "@/components/map-controls"
 import { FeedView } from "@/components/feed-view"
 import { BottomNav } from "@/components/bottom-nav"
 import { useUserLocation } from "@/hooks/use-user-location"
-import type { Category } from "@/types"
+import { MapEventPreview } from "@/components/map-event-preview"
+import type { Category, Event } from "@/types"
 import { useEventsStore } from "@/store/events-store"
 import { Loader2 } from "lucide-react"
 
@@ -15,6 +16,7 @@ export default function HomePage() {
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null)
   const [view, setView] = useState<"map" | "feed">("map")
   const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null)
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
   const { location, error: locationError, requestLocation } = useUserLocation()
   const events = useEventsStore((state) => state.events)
   const isLoading = useEventsStore((state) => state.isLoading)
@@ -53,6 +55,41 @@ export default function HomePage() {
     mapInstance.fitBounds(bounds, { top: 48, right: 48, bottom: 48, left: 48 })
   }, [mapInstance, location, filteredEvents])
 
+  useEffect(() => {
+    if (view !== "map") {
+      setSelectedEvent(null)
+    }
+  }, [view])
+
+  useEffect(() => {
+    if (!selectedEvent) {
+      return
+    }
+
+    const stillVisible = filteredEvents.some((event) => event.id === selectedEvent.id)
+    if (!stillVisible) {
+      setSelectedEvent(null)
+    }
+  }, [filteredEvents, selectedEvent])
+
+  useEffect(() => {
+    if (!mapInstance) {
+      return
+    }
+
+    const clickListener = mapInstance.addListener("click", () => {
+      setSelectedEvent(null)
+    })
+
+    return () => {
+      clickListener.remove()
+    }
+  }, [mapInstance])
+
+  const handleMarkerSelect = useCallback((event: Event) => {
+    setSelectedEvent(event)
+  }, [])
+
   if (isLoading && events.length === 0) {
     return (
       <div className="flex h-screen items-center justify-center bg-background">
@@ -80,7 +117,7 @@ export default function HomePage() {
             onMapReady={setMapInstance}
           >
             {filteredEvents.map((event) => (
-              <EventMarker key={event.id} event={event} />
+              <EventMarker key={event.id} event={event} onSelect={handleMarkerSelect} />
             ))}
           </MapView>
           <MapControls
@@ -99,6 +136,14 @@ export default function HomePage() {
       {locationError && (
         <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-destructive text-destructive-foreground px-4 py-2 rounded-lg shadow-lg text-sm z-50">
           {locationError}
+        </div>
+      )}
+
+      {view === "map" && selectedEvent && (
+        <div className="pointer-events-none fixed inset-x-0 bottom-[5.5rem] z-[60] flex justify-center px-4 pb-[calc(env(safe-area-inset-bottom)+1rem)]">
+          <div className="pointer-events-auto">
+            <MapEventPreview event={selectedEvent} onDismiss={() => setSelectedEvent(null)} />
+          </div>
         </div>
       )}
 

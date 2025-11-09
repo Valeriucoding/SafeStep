@@ -1,4 +1,4 @@
-export type Category = "danger" | "blocked-path" | "protest" | "event" | "crime-alert"
+export type Category = "danger" | "blocked-path" | "event" | "protest" | "crime-alert"
 
 export interface Location {
   lat: number
