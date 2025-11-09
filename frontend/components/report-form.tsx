@@ -1,7 +1,7 @@
 "use client"
 
 import { useId, useState } from "react"
-import { useForm } from "react-hook-form"
+import { Controller, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { Button } from "@/components/ui/button"
@@ -36,18 +36,7 @@ const reportSchema = z.object({
   address: z.string().min(5, "Address must be at least 5 characters"),
   imageUrl: z.string().optional(),
   subcategory: z.enum(CRIME_ALERT_SUBCATEGORY_VALUES).optional(),
-}).refine(
-  (data) => {
-    if (data.category !== "crime-alert") {
-      return true
-    }
-    return !!data.subcategory
-  },
-  {
-    message: "Please select a subcategory",
-    path: ["subcategory"],
-  },
-)
+})
 
 type ReportFormData = z.infer<typeof reportSchema>
 
@@ -69,23 +58,24 @@ export function ReportForm({ onSubmit, isSubmitting, disabled, radiusMeters }: R
 
   const {
     register,
+    control,
     handleSubmit,
     formState: { errors },
     setValue,
     watch,
   } = useForm<ReportFormData>({
     resolver: zodResolver(reportSchema),
+    defaultValues: {
+      subcategory: undefined,
+    },
   })
 
   const category = watch("category")
-  const subcategory = watch("subcategory")
 
   const handleCategoryChange = (value: Category) => {
     setValue("category", value, { shouldValidate: true })
 
-    if (value === "crime-alert") {
-      setValue("subcategory", CRIME_ALERT_SUBCATEGORY_VALUES[0], { shouldValidate: true })
-    } else {
+    if (value !== "crime-alert") {
       setValue("subcategory", undefined, { shouldValidate: true })
     }
   }
@@ -112,24 +102,34 @@ export function ReportForm({ onSubmit, isSubmitting, disabled, radiusMeters }: R
       {category === "crime-alert" && (
         <div className="space-y-3">
           <Label htmlFor={subcategoryFieldId} className="text-base font-medium">Crime alert type *</Label>
-          <input type="hidden" {...register("subcategory")} />
-          <Select
-            value={subcategory ?? undefined}
-            onValueChange={(value) =>
-              setValue("subcategory", value as CrimeAlertSubcategory, { shouldValidate: true })
-            }
-          >
-            <SelectTrigger id={subcategoryFieldId} className="h-12 text-base">
-              <SelectValue placeholder="Select alert type" />
-            </SelectTrigger>
-            <SelectContent>
-              {CRIME_ALERT_SUBCATEGORY_VALUES.map((option) => (
-                <SelectItem key={option} value={option} className="text-base">
-                  {CRIME_ALERT_SUBCATEGORY_LABELS[option]}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Controller
+            control={control}
+            name="subcategory"
+            render={({ field }) => (
+              <Select
+                value={field.value ?? "none"}
+                onValueChange={(value) => {
+                  const nextValue = value === "none" ? undefined : (value as CrimeAlertSubcategory)
+                  field.onChange(nextValue)
+                  setValue("subcategory", nextValue, { shouldValidate: true })
+                }}
+              >
+                <SelectTrigger id={subcategoryFieldId} className="h-12 text-base">
+                  <SelectValue placeholder="Select alert type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none" className="text-base">
+                    No subcategory
+                  </SelectItem>
+                  {CRIME_ALERT_SUBCATEGORY_VALUES.map((option) => (
+                    <SelectItem key={option} value={option} className="text-base">
+                      {CRIME_ALERT_SUBCATEGORY_LABELS[option]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          />
           {errors.subcategory && <p className="text-sm text-destructive mt-1">{errors.subcategory.message}</p>}
         </div>
       )}
