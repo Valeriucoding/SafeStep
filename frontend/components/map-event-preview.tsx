@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { CATEGORY_ICONS, CATEGORY_LABELS } from "@/lib/constants"
 import type { Event } from "@/types"
-import { Calendar, CheckCircle2, MapPin, X } from "lucide-react"
+import { Calendar, CheckCircle2, MapPin, MessageCircle, X } from "lucide-react"
 import Link from "next/link"
 import { formatDistanceToNow } from "date-fns"
 
@@ -17,7 +17,17 @@ export function MapEventPreview({ event, onDismiss }: MapEventPreviewProps) {
   const categoryIcon = CATEGORY_ICONS[event.category as keyof typeof CATEGORY_ICONS] ?? "📍"
 
   return (
-    <div className="pointer-events-auto">
+    <div className="pointer-events-auto relative">
+      <div className="absolute left-[calc(theme(spacing.3)-2px)] top-[-16px] z-20 transform">
+        <Button
+          size="icon"
+          variant="secondary"
+          className="h-12 w-12 rounded-full bg-background/90 shadow-lg backdrop-blur transition-colors hover:bg-background"
+          aria-label="Open safety chat"
+        >
+          <MessageCircle className="h-5 w-5 text-primary" />
+        </Button>
+      </div>
       <Card className="relative mx-auto w-[min(92%,420px)] overflow-hidden rounded-3xl border border-border/70 bg-background shadow-lg">
         <div className="absolute right-2 top-2 z-10">
           <Button
@@ -69,4 +79,3 @@ export function MapEventPreview({ event, onDismiss }: MapEventPreviewProps) {
     </div>
   )
 }
-
