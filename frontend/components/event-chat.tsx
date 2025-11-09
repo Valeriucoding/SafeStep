@@ -2,6 +2,7 @@
 
 import type { FormEvent } from "react"
 import { useEffect, useMemo, useRef, useState } from "react"
+import type { RealtimeChannel } from "@supabase/supabase-js"
 import { formatDistanceToNow } from "date-fns"
 import { Loader2, Send } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -22,14 +23,22 @@ type EventMessageRow = {
   created_at: string
 }
 
+const createPendingKey = (message: Pick<EventMessage, "content" | "userId" | "userEmail">) => {
+  return `${message.userId ?? "anon"}|${message.userEmail ?? "anon"}|${message.content}`
+}
+
 export function EventChat({ eventId }: EventChatProps) {
   const { supabase, user } = useAuth()
-  const [messages, setMessages] = useState<EventMessage[]>([])
+  type ChatMessage = EventMessage & { optimistic?: boolean }
+
+  const [messages, setMessages] = useState<ChatMessage[]>([])
   const [input, setInput] = useState("")
   const [isLoading, setIsLoading] = useState(true)
   const [isSending, setIsSending] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const bottomRef = useRef<HTMLDivElement | null>(null)
+  const channelRef = useRef<RealtimeChannel | null>(null)
+  const pendingMessagesRef = useRef<Map<string, string[]>>(new Map())
   const hasMessages = messages.length > 0
 
   useEffect(() => {
@@ -77,49 +86,129 @@ export function EventChat({ eventId }: EventChatProps) {
   }, [eventId, supabase])
 
   useEffect(() => {
-    const channel = supabase
-      .channel(`event-messages-${eventId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "event_messages",
-          filter: `event_id=eq.${eventId}`,
-        },
-        (payload) => {
-          const row = payload.new as EventMessageRow
-          const nextMessage: EventMessage = {
-            id: row.id,
-            eventId: row.event_id,
-            userId: row.user_id,
-            userEmail: row.user_email,
-            content: row.content,
-            createdAt: row.created_at,
-          }
+    let isMounted = true
+    let retryTimeout: number | null = null
+    let retryAttempt = 0
 
-          setMessages((previous) => {
-            if (previous.some((message) => message.id === nextMessage.id)) {
-              return previous
-            }
-            return [...previous, nextMessage]
-          })
-        },
-      )
-
-    channel.subscribe((status) => {
-      if (status === "CHANNEL_ERROR") {
-        console.error("[event-chat] Realtime channel error")
+    const clearRetryTimer = () => {
+      if (retryTimeout) {
+        window.clearTimeout(retryTimeout)
+        retryTimeout = null
       }
-    })
+    }
 
-    return () => {
+    const teardownChannel = () => {
+      const channel = channelRef.current
+      channelRef.current = null
+      if (!channel) {
+        return
+      }
+
       const result = channel.unsubscribe()
       if (result instanceof Promise) {
         result.catch((unsubscribeError) => {
           console.error("[event-chat] Failed to unsubscribe from messages", unsubscribeError)
         })
       }
+    }
+
+    const handleRealtimeInsert = (row: EventMessageRow) => {
+      const nextMessage: EventMessage = {
+        id: row.id,
+        eventId: row.event_id,
+        userId: row.user_id,
+        userEmail: row.user_email,
+        content: row.content,
+        createdAt: row.created_at,
+      }
+
+      const pendingKey = createPendingKey(nextMessage)
+      const optimisticQueue = pendingMessagesRef.current.get(pendingKey)
+      const optimisticId = optimisticQueue?.shift() ?? null
+
+      if (!optimisticQueue || optimisticQueue.length === 0) {
+        pendingMessagesRef.current.delete(pendingKey)
+      } else if (optimisticQueue) {
+        pendingMessagesRef.current.set(pendingKey, optimisticQueue)
+      }
+
+      setMessages((previous) => {
+        const withoutOptimistic =
+          optimisticId === null
+            ? previous
+            : previous.filter((message) => message.id !== optimisticId)
+
+        if (withoutOptimistic.some((message) => message.id === nextMessage.id)) {
+          return withoutOptimistic
+        }
+
+        return [...withoutOptimistic, nextMessage]
+      })
+    }
+
+    const subscribeToMessages = () => {
+      teardownChannel()
+
+      const channel = supabase
+        .channel(`event-messages-${eventId}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "INSERT",
+            schema: "public",
+            table: "event_messages",
+            filter: `event_id=eq.${eventId}`,
+          },
+          (payload) => {
+            handleRealtimeInsert(payload.new as EventMessageRow)
+          },
+        )
+
+      channel.subscribe((status) => {
+        if (!isMounted) {
+          return
+        }
+
+        if (status === "SUBSCRIBED") {
+          retryAttempt = 0
+          clearRetryTimer()
+          return
+        }
+
+        if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+          console.warn(`[event-chat] Realtime channel status: ${status}`)
+          scheduleRetry()
+          return
+        }
+
+        if (status === "CLOSED") {
+          scheduleRetry()
+        }
+      })
+
+      channelRef.current = channel
+    }
+
+    const scheduleRetry = () => {
+      if (!isMounted || retryTimeout) {
+        return
+      }
+
+      const delay = Math.min(1000 * 2 ** retryAttempt, 12000)
+      retryAttempt += 1
+
+      retryTimeout = window.setTimeout(() => {
+        retryTimeout = null
+        subscribeToMessages()
+      }, delay)
+    }
+
+    subscribeToMessages()
+
+    return () => {
+      isMounted = false
+      clearRetryTimer()
+      teardownChannel()
     }
   }, [eventId, supabase])
 
@@ -147,6 +236,22 @@ export function EventChat({ eventId }: EventChatProps) {
     setError(null)
 
     const trimmed = input.trim()
+    const optimisticId = `optimistic-${globalThis.crypto?.randomUUID?.() ?? Math.random().toString(16).slice(2)}`
+    const optimisticMessage: ChatMessage = {
+      id: optimisticId,
+      eventId,
+      userId: user?.id ?? null,
+      userEmail: user?.email ?? null,
+      content: trimmed,
+      createdAt: new Date().toISOString(),
+      optimistic: true,
+    }
+
+    const pendingKey = createPendingKey(optimisticMessage)
+    const existingQueue = pendingMessagesRef.current.get(pendingKey) ?? []
+    pendingMessagesRef.current.set(pendingKey, [...existingQueue, optimisticId])
+
+    setMessages((previous) => [...previous, optimisticMessage])
 
     const { error: sendError } = await supabase.from("event_messages").insert({
       event_id: eventId,
@@ -158,6 +263,18 @@ export function EventChat({ eventId }: EventChatProps) {
     if (sendError) {
       console.error("[event-chat] Failed to send message", sendError)
       setError("We couldn’t send your message. Please try again.")
+
+      setMessages((previous) => previous.filter((message) => message.id !== optimisticId))
+
+      const queue = pendingMessagesRef.current.get(pendingKey)
+      if (queue) {
+        const updatedQueue = queue.filter((id) => id !== optimisticId)
+        if (updatedQueue.length === 0) {
+          pendingMessagesRef.current.delete(pendingKey)
+        } else {
+          pendingMessagesRef.current.set(pendingKey, updatedQueue)
+        }
+      }
     } else {
       setInput("")
     }
@@ -178,12 +295,11 @@ export function EventChat({ eventId }: EventChatProps) {
 
   const renderMessageMeta = (message: EventMessage) => {
     const isOwn = message.userId && user?.id === message.userId
-    const displayName = isOwn
-      ? "You"
-      : message.userEmail?.split("@")[0] ?? "Community member"
+    const displayName = isOwn ? "You" : message.userEmail?.split("@")[0] ?? "Community member"
+    const metaClass = isOwn ? "text-white/70 dark:text-slate-900/70" : "text-muted-foreground/80"
 
     return (
-      <div className="mt-1 flex items-center justify-between text-[11px] text-muted-foreground/80">
+      <div className={`mt-1 flex items-center justify-between text-[11px] ${metaClass}`}>
         <span>{displayName}</span>
         <span suppressHydrationWarning>
           {formatDistanceToNow(new Date(message.createdAt), { addSuffix: true })}
@@ -208,9 +324,7 @@ export function EventChat({ eventId }: EventChatProps) {
                 <div key={message.id} className={`flex w-full ${isOwn ? "justify-end" : "justify-start"}`}>
                   <div
                     className={`max-w-[80%] rounded-2xl px-4 py-2 text-sm leading-relaxed ${
-                      isOwn
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-muted text-foreground"
+                      isOwn ? "bg-primary text-white shadow-sm dark:text-slate-950" : "bg-muted text-foreground"
                     }`}
                   >
                     <p className="whitespace-pre-wrap break-words">{message.content}</p>
@@ -252,5 +366,3 @@ export function EventChat({ eventId }: EventChatProps) {
     </div>
   )
 }
-
-

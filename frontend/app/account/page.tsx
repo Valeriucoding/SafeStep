@@ -1,5 +1,7 @@
 "use client";
 
+import { useId } from "react";
+
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Mail } from "lucide-react";
 
@@ -12,6 +14,7 @@ import { useAuth } from "@/lib/hooks/use-auth";
 export default function AccountPage() {
   const router = useRouter();
   const { user } = useAuth();
+  const nameInputId = useId();
 
   const email = user?.email ?? "";
   const fullName =
@@ -43,8 +46,8 @@ export default function AccountPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="fullName">Name</Label>
-            <Input id="fullName" value={fullName} readOnly placeholder="Add your name" />
+            <Label htmlFor={nameInputId}>Name</Label>
+            <Input id={nameInputId} value={fullName} readOnly placeholder="Add your name" />
           </div>
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
