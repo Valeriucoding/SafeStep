@@ -85,7 +85,7 @@ export function EventDetail({ event, onVerify, hasVerified }: EventDetailProps) 
       )}
 
       {/* Safety Tips */}
-      {event.isActive && (
+      {event.isActive && event.category !== "event" && (
         <Card className="border-primary/20 bg-primary/5">
           <CardContent className="pt-6">
             <div className="flex gap-3">
