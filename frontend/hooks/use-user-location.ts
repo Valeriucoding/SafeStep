@@ -7,6 +7,7 @@ export function useUserLocation() {
   const [location, setLocation] = useState<Location | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [accuracy, setAccuracy] = useState<number | null>(null)
 
   const requestLocation = useCallback(() => {
     if (!navigator.geolocation) {
@@ -23,15 +24,17 @@ export function useUserLocation() {
           lat: position.coords.latitude,
           lng: position.coords.longitude,
         })
+        setAccuracy(Number.isFinite(position.coords.accuracy) ? position.coords.accuracy : null)
         setIsLoading(false)
       },
       (error) => {
         setError("Unable to retrieve your location")
         setIsLoading(false)
+        setAccuracy(null)
         console.error("Geolocation error:", error)
       },
     )
   }, [])
 
-  return { location, error, isLoading, requestLocation }
+  return { location, accuracy, error, isLoading, requestLocation }
 }

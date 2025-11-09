@@ -8,6 +8,7 @@ import { FeedView } from "@/components/feed-view"
 import { BottomNav } from "@/components/bottom-nav"
 import { useUserLocation } from "@/hooks/use-user-location"
 import { MapEventPreview } from "@/components/map-event-preview"
+import { UserLocationMarker } from "@/components/user-location-marker"
 import type { Category, Event } from "@/types"
 import { useEventsStore } from "@/store/events-store"
 import { Loader2 } from "lucide-react"
@@ -17,7 +18,7 @@ export default function HomePage() {
   const [view, setView] = useState<"map" | "feed">("map")
   const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null)
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
-  const { location, error: locationError, requestLocation } = useUserLocation()
+  const { location, accuracy, error: locationError, requestLocation } = useUserLocation()
   const events = useEventsStore((state) => state.events)
   const isLoading = useEventsStore((state) => state.isLoading)
   const error = useEventsStore((state) => state.error)
@@ -116,6 +117,9 @@ export default function HomePage() {
             onLocationRequest={requestLocation}
             onMapReady={setMapInstance}
           >
+            {location && (
+              <UserLocationMarker location={location} accuracy={accuracy} />
+            )}
             {filteredEvents.map((event) => (
               <EventMarker key={event.id} event={event} onSelect={handleMarkerSelect} />
             ))}
