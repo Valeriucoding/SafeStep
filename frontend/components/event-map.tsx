@@ -51,5 +51,5 @@ export function EventMap({ location }: EventMapProps) {
   }, [map, location])
 
 
-  return <div ref={mapRef} className="h-64 w-full" />
+  return <div ref={mapRef} className="h-64 w-full rounded-lg" />
 }
