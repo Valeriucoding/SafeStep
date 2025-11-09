@@ -22,6 +22,12 @@ interface EventsState {
 }
 
 let eventsChannel: RealtimeChannel | null = null
+let retryTimeout: ReturnType<typeof setTimeout> | null = null
+let retryAttempt = 0
+let shouldRetry = false
+
+const BASE_RETRY_DELAY_MS = 1000
+const MAX_RETRY_DELAY_MS = 30000
 
 export const useEventsStore = create<EventsState>((set, get) => ({
   events: [],
@@ -46,58 +52,155 @@ export const useEventsStore = create<EventsState>((set, get) => ({
     set({ events, isLoading: false })
   },
   async subscribeToRealtime() {
+    const clearRetryTimer = () => {
+      if (retryTimeout) {
+        clearTimeout(retryTimeout)
+        retryTimeout = null
+      }
+    }
+
+    const scheduleRetry = () => {
+      if (!shouldRetry) {
+        return
+      }
+
+      const delay = Math.min(MAX_RETRY_DELAY_MS, BASE_RETRY_DELAY_MS * 2 ** retryAttempt)
+      retryAttempt += 1
+
+      clearRetryTimer()
+      retryTimeout = setTimeout(() => {
+        retryTimeout = null
+
+        if (!shouldRetry || eventsChannel) {
+          return
+        }
+
+        initializeChannel()
+      }, delay)
+    }
+
+    const teardownChannel = async () => {
+      if (!eventsChannel) {
+        return
+      }
+
+      const channel = eventsChannel
+      eventsChannel = null
+      try {
+        await channel.unsubscribe()
+      } catch (error) {
+        console.warn("[events-store] Failed to unsubscribe from realtime channel during teardown", error)
+      }
+    }
+
+    const initializeChannel = () => {
+      if (eventsChannel) {
+        return
+      }
+
+      const channel = supabase
+        .channel("events-feed")
+        .on(
+          "postgres_changes",
+          { event: "INSERT", schema: "public", table: "events" },
+          (payload: RealtimePostgresChangesPayload<EventRow>) => {
+            const event = mapEventRowToEvent(payload.new as EventRow)
+            get().upsertEvent(event)
+          },
+        )
+        .on(
+          "postgres_changes",
+          { event: "UPDATE", schema: "public", table: "events" },
+          (payload: RealtimePostgresChangesPayload<EventRow>) => {
+            const event = mapEventRowToEvent(payload.new as EventRow)
+            get().upsertEvent(event)
+          },
+        )
+        .on(
+          "postgres_changes",
+          { event: "DELETE", schema: "public", table: "events" },
+          (payload: RealtimePostgresChangesPayload<EventRow>) => {
+            const id = (payload.old as Partial<EventRow> | null)?.id
+            if (id) {
+              get().removeEvent(id)
+            }
+          },
+        )
+
+      channel.subscribe((status: SubscribeStatus) => {
+        if (status === "SUBSCRIBED") {
+          retryAttempt = 0
+          clearRetryTimer()
+          set({ hasRealtimeSubscription: true })
+          return
+        }
+
+        if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+          console.warn(`[events-store] Realtime channel status: ${status}`)
+          set({ hasRealtimeSubscription: false })
+          void teardownChannel()
+          scheduleRetry()
+          return
+        }
+
+        if (status === "CLOSED") {
+          set({ hasRealtimeSubscription: false })
+          void teardownChannel()
+
+          if (shouldRetry) {
+            scheduleRetry()
+          }
+        }
+      })
+
+      eventsChannel = channel
+    }
+
     if (get().hasRealtimeSubscription) {
       return
     }
 
-    const channel = supabase
-      .channel("events-feed")
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "events" },
-        (payload: RealtimePostgresChangesPayload<EventRow>) => {
-          const event = mapEventRowToEvent(payload.new as EventRow)
-          get().upsertEvent(event)
-        },
-      )
-      .on(
-        "postgres_changes",
-        { event: "UPDATE", schema: "public", table: "events" },
-        (payload: RealtimePostgresChangesPayload<EventRow>) => {
-          const event = mapEventRowToEvent(payload.new as EventRow)
-          get().upsertEvent(event)
-        },
-      )
-      .on(
-        "postgres_changes",
-        { event: "DELETE", schema: "public", table: "events" },
-        (payload: RealtimePostgresChangesPayload<EventRow>) => {
-          const id = (payload.old as Partial<EventRow> | null)?.id
-          if (id) {
-            get().removeEvent(id)
-          }
-        },
-      )
-
-    channel.subscribe((status: SubscribeStatus) => {
-      if (status === "SUBSCRIBED") {
-        set({ hasRealtimeSubscription: true })
-      }
-
-      if (status === "CHANNEL_ERROR") {
-        console.error("[events-store] Realtime channel error")
-        set({ error: "Realtime connection failed" })
-      }
-    })
-    eventsChannel = channel
-  },
-  async unsubscribeFromRealtime() {
-    if (!eventsChannel) {
+    if (eventsChannel) {
+      shouldRetry = true
       return
     }
 
-    await eventsChannel.unsubscribe()
-    eventsChannel = null
+    shouldRetry = true
+    retryAttempt = 0
+    initializeChannel()
+  },
+  async unsubscribeFromRealtime() {
+    const clearRetryTimer = () => {
+      if (retryTimeout) {
+        clearTimeout(retryTimeout)
+        retryTimeout = null
+      }
+    }
+
+    const teardownChannel = async () => {
+      if (!eventsChannel) {
+        return
+      }
+
+      const channel = eventsChannel
+      eventsChannel = null
+      try {
+        await channel.unsubscribe()
+      } catch (error) {
+        console.warn("[events-store] Failed to unsubscribe from realtime channel", error)
+      }
+    }
+
+    if (!eventsChannel) {
+      shouldRetry = false
+      clearRetryTimer()
+      return
+    }
+
+    shouldRetry = false
+    retryAttempt = 0
+    clearRetryTimer()
+    await teardownChannel()
     set({ hasRealtimeSubscription: false })
   },
   upsertEvent(event) {
